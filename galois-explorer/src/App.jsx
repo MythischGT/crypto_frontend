@@ -186,7 +186,9 @@ function JsonTree({ data }) {
 }
 
 export default function CryptoExplorer() {
-  const [baseUrl,    setBaseUrl]    = useState("http://localhost:8000");
+  const [baseUrl, setBaseUrl] = useState(
+    import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+  );
   const [editingUrl, setEditingUrl] = useState(false);
   const [tab,        setTab]        = useState("field");
   const [opId,       setOpId]       = useState("element");
