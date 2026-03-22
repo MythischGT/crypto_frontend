@@ -559,7 +559,9 @@ const sx = {
     padding:    "18px 20px",
     fontSize:   12.5,
     lineHeight: 1.9,
-    overflowX:  "auto",
+    overflowY:  "auto",
+    overflowX:  "hidden",
+    maxHeight:  560,
   },
   errorCard: {
     background:   C.redDim,
@@ -704,9 +706,30 @@ function JsonValue({ data, depth = 0 }) {
   if (typeof data === "string") {
     const isHex = data.startsWith("0x");
     const isBig = /^\d{10,}$/.test(data);
-    const wrapStyle = (isHex || isBig) ? { wordBreak: "break-all" } : {};
-    if (isHex) return <span style={{ color: C.teal,   ...wrapStyle }}>{data}</span>;
-    if (isBig) return <span style={{ color: C.orange, ...wrapStyle }}>{data}</span>;
+    // Large integers and hex values get their own scrollable block so they
+    // don't explode the layout. The full value is always visible — just scroll.
+    if (isHex || isBig) {
+      const color = isHex ? C.teal : C.orange;
+      const isLong = data.length > 64;
+      return (
+        <span style={{
+          display:       isLong ? "block"  : "inline",
+          overflowX:     isLong ? "auto"   : "visible",
+          overflowY:     "hidden",
+          maxWidth:      isLong ? "100%"   : undefined,
+          background:    isLong ? C.input  : "transparent",
+          border:        isLong ? `1px solid ${C.border}` : "none",
+          borderRadius:  isLong ? 6        : 0,
+          padding:       isLong ? "6px 10px" : 0,
+          marginTop:     isLong ? 4        : 0,
+          whiteSpace:    "nowrap",
+          color,
+          fontSize:      isLong ? 11.5    : undefined,
+        }}>
+          {data}
+        </span>
+      );
+    }
     return <span style={{ color: C.green }}>"{data}"</span>;
   }
 
