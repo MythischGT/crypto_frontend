@@ -522,11 +522,13 @@ const sx = {
 
   // ── Result / Error ──
   resultCard: {
-    background:   C.panel,
-    border:       `1px solid ${C.border}`,
-    borderRadius: 12,
-    overflow:     "hidden",
-    marginBottom: 16,
+    background:    C.panel,
+    border:        `1px solid ${C.border}`,
+    borderRadius:  12,
+    marginBottom:  16,
+    maxHeight:     520,
+    display:       "flex",
+    flexDirection: "column",
   },
   resultHeader: {
     padding:      "10px 16px",
@@ -565,9 +567,8 @@ const sx = {
     lineHeight: 1.9,
     overflowY:  "auto",
     overflowX:  "hidden",
-    maxHeight:  600,
-    // Large number pills handle their own horizontal scroll internally
-    // so this container never needs to scroll horizontally.
+    flex:       1,
+    minHeight:  0,
   },
   errorCard: {
     background:   C.redDim,
