@@ -652,6 +652,8 @@ export default function CryptoExplorer() {
           align-self:stretch;
         }
         .main-area     { flex:1; min-width:0; background:${C.bg}; }
+        .main-pad      { width:100%; box-sizing:border-box; }
+        .main-pad > *  { width:100%; box-sizing:border-box; }
         .main-pad      { padding:2rem 2.25rem; }
         .mobile-tabs   { display:none; }
 
