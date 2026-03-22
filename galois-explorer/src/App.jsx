@@ -1,196 +1,294 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
+// ─── Fonts ────────────────────────────────────────────────────────────────
 const FontLoader = () => (
-  <style>{`@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap');`}</style>
-);
-
-const T = {
-  bg:"#080c12", bgPanel:"#0c1219", bgInput:"#0f1825", bgResult:"#060a0f",
-  border:"#1a2535", amber:"#f0a500", amberDim:"#7a5200",
-  cyan:"#00d4c8", cyanDim:"#005550", green:"#00c970", red:"#f05050",
-  violet:"#a78bfa", violetDim:"#3b1f7a",
-  muted:"#3d5066", text:"#c8d8e8", textDim:"#4a6070", white:"#e8f0f8",
-};
-
-const GlobalStyles = () => (
   <style>{`
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    body { background:${T.bg}; color:${T.text}; font-family:'IBM Plex Sans',sans-serif; }
-    ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:${T.bg}; }
-    ::-webkit-scrollbar-thumb { background:${T.border}; border-radius:3px; }
-    input,select {
-      font-family:'IBM Plex Mono',monospace; background:${T.bgInput};
-      border:1px solid ${T.border}; color:${T.text}; border-radius:4px;
-      padding:8px 12px; width:100%; font-size:13px; outline:none; transition:border-color 0.15s;
-    }
-    input:focus,select:focus { border-color:${T.amber}; box-shadow:0 0 0 2px ${T.amberDim}40; }
-    input::placeholder { color:${T.textDim}; }
-    label { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:${T.muted}; margin-bottom:4px; display:block; }
-    select option { background:${T.bgInput}; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    @keyframes glow   { 0%,100%{text-shadow:0 0 8px ${T.amber}80} 50%{text-shadow:0 0 20px ${T.amber}} }
-    .fade-in { animation:fadeIn 0.22s ease both; }
-    .pulse   { animation:pulse 1.4s infinite; }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
   `}</style>
 );
 
-// Known secp256k1 G coordinates for ECC pre-fill
+// ─── Tokens ───────────────────────────────────────────────────────────────
+const C = {
+  bg:       "#F7F6F3",
+  surface:  "#FFFFFF",
+  surfaceAlt: "#F2F1EE",
+  border:   "#E3E1DC",
+  borderDk: "#C8C5BF",
+  ink:      "#18171A",
+  inkMid:   "#5A5760",
+  inkDim:   "#9B98A3",
+  blue:     "#2055E5",
+  blueLight:"#EEF2FD",
+  blueMid:  "#8CA5F0",
+  green:    "#1A9E5C",
+  greenLight:"#E8F7F0",
+  red:      "#D93025",
+  redLight: "#FDECEA",
+  orange:   "#D96B10",
+  orangeLight:"#FDF3E8",
+};
+
+// ─── Global CSS ───────────────────────────────────────────────────────────
+const GlobalStyles = () => (
+  <style>{`
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; }
+    body {
+      background:${C.bg};
+      color:${C.ink};
+      font-family:'DM Sans', sans-serif;
+      font-size:14px;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:${C.borderDk}; border-radius:99px; }
+
+    input, select, textarea {
+      font-family:'JetBrains Mono', monospace;
+      font-size:12.5px;
+      background:${C.surface};
+      border:1.5px solid ${C.border};
+      color:${C.ink};
+      border-radius:8px;
+      padding:9px 12px;
+      width:100%;
+      outline:none;
+      transition:border-color 0.15s, box-shadow 0.15s;
+      appearance:none;
+    }
+    input:focus, select:focus {
+      border-color:${C.blue};
+      box-shadow:0 0 0 3px ${C.blueLight};
+    }
+    input::placeholder { color:${C.inkDim}; font-weight:300; }
+    select {
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239B98A3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 12px center;
+      padding-right:32px;
+      cursor:pointer;
+    }
+    label {
+      font-family:'DM Sans', sans-serif;
+      font-size:11.5px;
+      font-weight:500;
+      letter-spacing:0.03em;
+      color:${C.inkMid};
+      margin-bottom:5px;
+      display:block;
+    }
+    button { cursor:pointer; border:none; font-family:'DM Sans', sans-serif; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes spin {
+      to { transform:rotate(360deg); }
+    }
+    .fade-up { animation:fadeUp 0.2s ease both; }
+  `}</style>
+);
+
+// ─── ECC test vectors ─────────────────────────────────────────────────────
 const K1_Gx = "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
 const K1_Gy = "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8";
 
+// ─── Operations catalogue ─────────────────────────────────────────────────
 const OPS = {
   field: [
-    { id:"element", label:"Create Element", icon:"⊕", desc:"Validate & normalise a value into GF(p)",
+    { id:"element", label:"Create Element", desc:"Validate & normalise a into GF(p)",
       method:"POST", path:"/api/field/element",
       fields:[
-        { key:"prime", label:"Prime  p", placeholder:"223", hint:"decimal or 0x hex" },
-        { key:"value", label:"Value  a", placeholder:"192", hint:"will be reduced mod p" },
+        {key:"prime",label:"Prime p",placeholder:"223",hint:"decimal or 0x hex"},
+        {key:"value",label:"Value a",placeholder:"192",hint:"reduced mod p"},
       ]},
-    { id:"add", label:"Add", icon:"+", desc:"a + b  mod  p", method:"POST", path:"/api/field/add",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"sub", label:"Subtract", icon:"−", desc:"a − b  mod  p", method:"POST", path:"/api/field/sub",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"mul", label:"Multiply", icon:"×", desc:"a × b  mod  p", method:"POST", path:"/api/field/mul",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"div", label:"Divide", icon:"÷", desc:"a × b⁻¹  mod  p", method:"POST", path:"/api/field/div",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"a",label:"a (numerator)",placeholder:"192"},{key:"b",label:"b (divisor)",placeholder:"105"}]},
-    { id:"pow", label:"Power", icon:"xⁿ", desc:"base ^ exp  mod  p", method:"POST", path:"/api/field/pow",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"base",label:"base",placeholder:"192"},{key:"exp",label:"exponent",placeholder:"3",hint:"negative → modular inverse power"}]},
-    { id:"inverse", label:"Inverse", icon:"a⁻¹", desc:"Multiplicative inverse in GF(p)", method:"POST", path:"/api/field/inverse",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
-    { id:"neg", label:"Negate", icon:"−a", desc:"Additive inverse: p − a  mod  p", method:"POST", path:"/api/field/neg",
-      fields:[{key:"prime",label:"Prime  p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
+    { id:"add",     label:"Add",      desc:"a + b mod p", method:"POST", path:"/api/field/add",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
+    { id:"sub",     label:"Subtract", desc:"a − b mod p", method:"POST", path:"/api/field/sub",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
+    { id:"mul",     label:"Multiply", desc:"a × b mod p", method:"POST", path:"/api/field/mul",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
+    { id:"div",     label:"Divide",   desc:"a × b⁻¹ mod p", method:"POST", path:"/api/field/div",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"Numerator a",placeholder:"192"},{key:"b",label:"Divisor b",placeholder:"105"}]},
+    { id:"pow",     label:"Power",    desc:"base ^ exp mod p", method:"POST", path:"/api/field/pow",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"base",label:"Base",placeholder:"192"},{key:"exp",label:"Exponent",placeholder:"3",hint:"negative → inverse"}]},
+    { id:"inverse", label:"Inverse",  desc:"Multiplicative inverse a⁻¹ in GF(p)", method:"POST", path:"/api/field/inverse",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
+    { id:"neg",     label:"Negate",   desc:"Additive inverse p − a mod p", method:"POST", path:"/api/field/neg",
+      fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
   ],
   ecc: [
-    { id:"curves",     label:"List Curves",      icon:"≋", desc:"All available named curves",
-      method:"GET", path:"/api/ecc/curves", fields:[] },
-    { id:"curve_info", label:"Curve Info",        icon:"ℂ", desc:"Full parameters for a specific curve",
+    { id:"curves",     label:"List Curves",      desc:"All available named curves",
+      method:"GET", path:"/api/ecc/curves", fields:[]},
+    { id:"curve_info", label:"Curve Info",        desc:"Parameters for a specific curve",
       method:"GET", path:"/api/ecc/curves/:name",
       fields:[{key:"name",label:"Curve",type:"select",options:["secp256k1","p256","p384"]}]},
-    { id:"generator",  label:"Generator Point G", icon:"G", desc:"Base point coordinates",
+    { id:"generator",  label:"Generator Point G", desc:"Base point G coordinates",
       method:"GET", path:"/api/ecc/curves/:name/generator",
       fields:[{key:"name",label:"Curve",type:"select",options:["secp256k1","p256","p384"]}]},
-    { id:"validate",   label:"Validate Point",    icon:"✓", desc:"Check whether (x, y) lies on the curve",
+    { id:"validate",   label:"Validate Point",    desc:"Check whether (x, y) lies on the curve",
       method:"POST", path:"/api/ecc/point/validate",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:["secp256k1","p256","p384"]},
-        {key:"x",label:"x coordinate",placeholder:K1_Gx,default:K1_Gx,hint:"pre-filled: secp256k1 G·x"},
+        {key:"x",label:"x coordinate",placeholder:K1_Gx,default:K1_Gx,hint:"pre-filled: G·x"},
         {key:"y",label:"y coordinate",placeholder:K1_Gy,default:K1_Gy},
       ]},
-    { id:"point_add",  label:"Point Addition",    icon:"P+Q", desc:"P₁ + P₂ on the curve",
+    { id:"point_add",  label:"Point Addition",    desc:"P₁ + P₂ on the curve",
       method:"POST", path:"/api/ecc/point/add",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:["secp256k1","p256","p384"]},
-        {key:"x1",label:"P₁ x",placeholder:K1_Gx,default:K1_Gx,hint:"pre-filled: G  →  result = 2G"},
+        {key:"x1",label:"P₁ x",placeholder:K1_Gx,default:K1_Gx,hint:"G + G = 2G"},
         {key:"y1",label:"P₁ y",placeholder:K1_Gy,default:K1_Gy},
         {key:"x2",label:"P₂ x",placeholder:K1_Gx,default:K1_Gx},
         {key:"y2",label:"P₂ y",placeholder:K1_Gy,default:K1_Gy},
       ]},
-    { id:"scalar_mul", label:"Scalar Multiply",   icon:"k·P", desc:"k × P — blank P → use G",
+    { id:"scalar_mul", label:"Scalar Multiply",   desc:"k × P — leave P blank for G",
       method:"POST", path:"/api/ecc/scalar_mul",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:["secp256k1","p256","p384"]},
-        {key:"k",label:"scalar  k",placeholder:"2",default:"2",hint:"decimal or 0x hex"},
-        {key:"x",label:"P x  (blank = G)",placeholder:"leave blank to use G"},
-        {key:"y",label:"P y  (blank = G)",placeholder:"leave blank to use G"},
+        {key:"k",label:"Scalar k",placeholder:"2",default:"2",hint:"decimal or 0x hex"},
+        {key:"x",label:"P x (optional)",placeholder:"leave blank to use G"},
+        {key:"y",label:"P y (optional)",placeholder:"leave blank to use G"},
       ]},
   ],
   utils: [
-    { id:"is_prime",      label:"Is Prime?",       icon:"ℙ", desc:"Miller-Rabin primality test",
+    { id:"is_prime",       label:"Is Prime?",       desc:"Miller-Rabin primality test",
       method:"POST", path:"/api/utils/is_prime",
       fields:[{key:"n",label:"n",placeholder:"0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",hint:"decimal or 0x hex"}]},
-    { id:"next_prime",    label:"Next Prime",      icon:"p+", desc:"Smallest prime ≥ n",
+    { id:"next_prime",     label:"Next Prime",      desc:"Smallest prime ≥ n",
       method:"POST", path:"/api/utils/next_prime",
       fields:[{key:"n",label:"n",placeholder:"100"}]},
-    { id:"generate_prime",label:"Generate Prime",  icon:"⚙",  desc:"Random prime of exactly n bits",
+    { id:"generate_prime", label:"Generate Prime",  desc:"Random prime of exactly n bits",
       method:"POST", path:"/api/utils/generate_prime",
-      fields:[{key:"bits",label:"bit length",placeholder:"256",hint:"2 – 4096"}]},
-    { id:"mod_inverse",   label:"Modular Inverse", icon:"a⁻¹",desc:"Inverse of a (mod m)",
+      fields:[{key:"bits",label:"Bit length",placeholder:"256",hint:"2 – 4096"}]},
+    { id:"mod_inverse",    label:"Modular Inverse", desc:"Inverse of a (mod m)",
       method:"POST", path:"/api/utils/mod_inverse",
-      fields:[{key:"a",label:"a",placeholder:"3"},{key:"m",label:"m (modulus)",placeholder:"11"}]},
-    { id:"xgcd",          label:"Extended GCD",    icon:"gcd",desc:"gcd(a,b) = a·x + b·y",
+      fields:[{key:"a",label:"a",placeholder:"3"},{key:"m",label:"Modulus m",placeholder:"11"}]},
+    { id:"xgcd",           label:"Extended GCD",    desc:"gcd(a,b) = a·x + b·y",
       method:"POST", path:"/api/utils/xgcd",
       fields:[{key:"a",label:"a",placeholder:"35"},{key:"b",label:"b",placeholder:"15"}]},
   ],
   dhke: [
-    { id:"keypair", label:"Generate Key Pair", icon:"⚿",
-      desc:"Generate a fresh DHKE key pair over an RFC 3526 MODP group",
+    { id:"keypair",       label:"Generate Key Pair",      desc:"Fresh DHKE key pair over RFC 3526 MODP group",
       method:"POST", path:"/api/crypto/dhke/keypair",
-      note:"Step 1 — run this twice (Alice and Bob). Share only public_key.value.",
-      fields:[
-        {key:"bits",label:"Group size (bits)",type:"select",options:["2048","3072","4096"],default:"2048"},
-      ]},
-    { id:"shared_secret", label:"Compute Shared Secret", icon:"⇌",
-      desc:"Compute g^(xy) mod p — both parties arrive at the same value independently",
+      note:"Run this twice — once for each party. Keep private_key.x secret, share public_key.y.",
+      fields:[{key:"group",label:"Group",type:"select",options:["modp2048","modp3072","modp4096"],default:"modp2048"}]},
+    { id:"shared_secret", label:"Compute Shared Secret",  desc:"g^(xy) mod p — both parties compute the same value",
       method:"POST", path:"/api/crypto/dhke/shared_secret",
-      note:"Step 2 — paste your private key fields and the peer's public_key.value.",
+      note:"Paste your private key fields and the peer's public_key.y.",
       fields:[
-        {key:"private_bits",  label:"Group size (bits)", type:"select", options:["2048","3072","4096"], default:"2048"},
-        {key:"private_x", label:"Your private_key.x", placeholder:"(decimal from /keypair)"},
-        {key:"private_p",     label:"Your private_key.p",     placeholder:"(decimal from /keypair)"},
-        {key:"private_g",     label:"Your private_key.g",     placeholder:"2", default:"2"},
-        {key:"peer_y", label:"Peer's public_key.y", placeholder:"(decimal from peer's /keypair)"},
+        {key:"private_group",label:"Group",type:"select",options:["modp2048","modp3072","modp4096"],default:"modp2048"},
+        {key:"private_x",label:"Your private_key.x",placeholder:"(from /keypair)"},
+        {key:"private_p",label:"Your private_key.p",placeholder:"(from /keypair)"},
+        {key:"private_g",label:"Your private_key.g",placeholder:"2",default:"2"},
+        {key:"peer_y",   label:"Peer's public_key.y",placeholder:"(from peer's /keypair)"},
       ]},
-    { id:"derive_key", label:"Derive Symmetric Key", icon:"⚷",
-      desc:"SHA-256 KDF over the shared secret → symmetric key bytes (default: 32 = AES-256)",
+    { id:"derive_key",    label:"Derive Symmetric Key",   desc:"SHA-256 KDF → symmetric key bytes",
       method:"POST", path:"/api/crypto/dhke/derive_key",
-      note:"Step 3 — paste the secret from /shared_secret. Both parties get identical output.",
+      note:"Both parties run this with the same shared secret to get an identical AES key.",
       fields:[
-        {key:"secret", label:"Shared secret (decimal)", placeholder:"(decimal from /shared_secret)"},
-        {key:"length", label:"Key length (bytes)", placeholder:"32", default:"32", hint:"1 – 64"},
+        {key:"secret",      label:"Shared secret",placeholder:"(decimal from /shared_secret)"},
+        {key:"secret_group",label:"Group",type:"select",options:["modp2048","modp3072","modp4096"],default:"modp2048"},
+        {key:"length",      label:"Key length (bytes)",placeholder:"32",default:"32",hint:"1 – 64"},
       ]},
   ],
 };
 
-const TAB_META = {
-  field: { label:"Prime Field", icon:"𝔽", accent:T.amber },
-  ecc:   { label:"ECC",         icon:"𝔼", accent:T.cyan  },
-  utils: { label:"Utilities",   icon:"∂", accent:T.amber },
-  dhke:  { label:"DHKE",        icon:"⇄", accent:T.violet},
+const SECTIONS = {
+  field: "Prime Field  𝔽ₚ",
+  ecc:   "Elliptic Curves",
+  utils: "Number Theory",
+  dhke:  "Diffie-Hellman",
 };
 
-function truncate(s, n=56) { return s && s.length>n ? s.slice(0,n)+"…" : s; }
+// ─── Method badge ─────────────────────────────────────────────────────────
+function MethodBadge({ method }) {
+  const isGet = method === "GET";
+  return (
+    <span style={{
+      fontFamily:"'JetBrains Mono',monospace",
+      fontSize:10, fontWeight:500, letterSpacing:"0.06em",
+      padding:"2px 7px", borderRadius:4,
+      background: isGet ? C.greenLight : C.blueLight,
+      color:       isGet ? C.green     : C.blue,
+      border:`1px solid ${isGet ? "#BBE8D5" : C.blueMid}`,
+      whiteSpace:"nowrap",
+    }}>
+      {method}
+    </span>
+  );
+}
 
-function JsonTree({ data }) {
-  if (data === null)             return <span style={{color:T.muted}}>null</span>;
-  if (typeof data === "boolean") return <span style={{color:data?T.green:T.red}}>{String(data)}</span>;
-  if (typeof data === "number")  return <span style={{color:T.amber}}>{data}</span>;
+// ─── JSON renderer ────────────────────────────────────────────────────────
+function JsonValue({ data }) {
+  if (data === null)             return <span style={{color:C.inkDim}}>null</span>;
+  if (typeof data === "boolean") return <span style={{color:data ? C.green : C.red, fontWeight:500}}>{String(data)}</span>;
+  if (typeof data === "number")  return <span style={{color:C.orange}}>{data}</span>;
   if (typeof data === "string") {
     const isHex = data.startsWith("0x");
-    const isBig = /^\d{10,}$/.test(data);
-    return <span style={{color:isHex?T.cyan:isBig?T.amber:T.text}}>
-      {isHex||isBig ? truncate(data) : `"${data}"`}
-    </span>;
+    const isBig = /^\d{12,}$/.test(data);
+    const display = (isHex || isBig) && data.length > 52
+      ? data.slice(0, 52) + "…"
+      : data;
+    if (isHex) return <span style={{color:C.blue, fontWeight:400}}>{display}</span>;
+    if (isBig) return <span style={{color:C.orange}}>{display}</span>;
+    return <span style={{color:"#1A7A4A"}}>"{display}"</span>;
   }
   if (Array.isArray(data)) {
-    if (!data.length) return <span style={{color:T.muted}}>[]</span>;
-    return <span>{"["}{data.map((v,i)=>(
-      <div key={i} style={{paddingLeft:20}}>
-        <JsonTree data={v}/>{i<data.length-1&&<span style={{color:T.muted}}>,</span>}
-      </div>
-    ))}{"]"}</span>;
+    if (!data.length) return <span style={{color:C.inkDim}}>[ ]</span>;
+    return (
+      <span>
+        <span style={{color:C.inkMid}}>{"["}</span>
+        {data.map((v, i) => (
+          <div key={i} style={{paddingLeft:18}}>
+            <JsonValue data={v} />
+            {i < data.length - 1 && <span style={{color:C.inkDim}}>,</span>}
+          </div>
+        ))}
+        <span style={{color:C.inkMid}}>{"  ]"}</span>
+      </span>
+    );
   }
   if (typeof data === "object") {
-    return <span>{"{"}{Object.entries(data).map(([k,v],i,arr)=>(
-      <div key={k} style={{paddingLeft:20}}>
-        <span style={{color:T.muted,fontStyle:"italic"}}>{k}</span>
-        <span style={{color:T.textDim}}>: </span>
-        <JsonTree data={v}/>
-        {i<arr.length-1&&<span style={{color:T.textDim}}>,</span>}
-      </div>
-    ))}{"}"}
-    </span>;
+    const entries = Object.entries(data);
+    return (
+      <span>
+        {entries.map(([k, v], i) => (
+          <div key={k} style={{paddingLeft:18}}>
+            <span style={{color:C.inkMid, fontWeight:400}}>{k}</span>
+            <span style={{color:C.inkDim}}>: </span>
+            <JsonValue data={v} />
+            {i < entries.length - 1 && <span style={{color:C.inkDim}}>,</span>}
+          </div>
+        ))}
+      </span>
+    );
   }
   return <span>{String(data)}</span>;
 }
 
-export default function CryptoExplorer() {
-  const [baseUrl, setBaseUrl] = useState(
-    import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+// ─── Spinner ──────────────────────────────────────────────────────────────
+function Spinner() {
+  return (
+    <span style={{
+      display:"inline-block", width:14, height:14,
+      border:`2px solid ${C.border}`,
+      borderTopColor:C.ink,
+      borderRadius:"50%",
+      animation:"spin 0.7s linear infinite",
+      verticalAlign:"middle",
+    }}/>
   );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────
+export default function CryptoExplorer() {
+  const [baseUrl,    setBaseUrl]    = useState(import.meta?.env?.VITE_API_URL ?? "http://localhost:8000");
   const [editingUrl, setEditingUrl] = useState(false);
-  const [tab,        setTab]        = useState("field");
+  const [section,    setSection]    = useState("field");
   const [opId,       setOpId]       = useState("element");
   const [inputs,     setInputs]     = useState({});
   const [result,     setResult]     = useState(null);
@@ -199,272 +297,417 @@ export default function CryptoExplorer() {
   const [history,    setHistory]    = useState([]);
   const resultRef = useRef(null);
 
-  const ops     = OPS[tab];
-  const op      = ops.find(o=>o.id===opId) ?? ops[0];
-  const tabMeta = TAB_META[tab];
+  const ops = OPS[section];
+  const op  = ops.find(o => o.id === opId) ?? ops[0];
 
   useEffect(() => {
-    const defaults = {};
+    const d = {};
     (op?.fields ?? []).forEach(f => {
-      defaults[f.key] = f.type==="select" ? (f.default ?? f.options[0]) : (f.default ?? "");
+      d[f.key] = f.type === "select" ? (f.default ?? f.options[0]) : (f.default ?? "");
     });
-    setInputs(defaults); setResult(null); setError(null);
-  }, [opId, tab]);
+    setInputs(d); setResult(null); setError(null);
+  }, [opId, section]);
 
-  useEffect(() => { setOpId(OPS[tab][0].id); }, [tab]);
+  useEffect(() => { setOpId(OPS[section][0].id); }, [section]);
 
   const call = useCallback(async () => {
     if (!op) return;
     setLoading(true); setResult(null); setError(null);
-
-    // Substitute path params in op.path BEFORE prepending baseUrl
-    // (avoids the regex eating the port number e.g. :8000)
-    const resolvedPath = op.path.replace(/:(\w+)/g, (_,k) => encodeURIComponent(inputs[k]??""));
-    let url  = baseUrl.replace(/\/$/,"") + resolvedPath;
+    const resolvedPath = op.path.replace(/:(\w+)/g, (_, k) => encodeURIComponent(inputs[k] ?? ""));
+    const url = baseUrl.replace(/\/$/, "") + resolvedPath;
     let body = null;
-
     if (op.method !== "GET") {
       const raw = {};
-      op.fields.forEach(f => { const v=(inputs[f.key]??"").trim(); if(v!=="") raw[f.key]=v; });
+      op.fields.forEach(f => { const v = (inputs[f.key] ?? "").trim(); if (v) raw[f.key] = v; });
       body = JSON.stringify(raw);
     }
-
     try {
       const res  = await fetch(url, {
-        method: op.method,
-        headers: op.method!=="GET" ? {"Content-Type":"application/json"} : {},
+        method:  op.method,
+        headers: op.method !== "GET" ? { "Content-Type": "application/json" } : {},
         body,
       });
       const json = await res.json();
       if (!res.ok) {
         const msg = Array.isArray(json.detail)
-          ? "Validation error:\n" + json.detail.map(e=>`${e.loc?.slice(1).join(".")} — ${e.msg}`).join("\n")
+          ? json.detail.map(e => `${e.loc?.slice(1).join(".")} — ${e.msg}`).join("\n")
           : (json.detail ?? JSON.stringify(json));
         throw new Error(msg);
       }
       setResult(json);
-      setHistory(h => [{op:op.label, result:json, ts:new Date().toLocaleTimeString()}, ...h.slice(0,9)]);
-      setTimeout(() => resultRef.current?.scrollIntoView({behavior:"smooth"}), 50);
-    } catch(e) {
+      setHistory(h => [{ label: op.label, method: op.method, result: json, ts: new Date().toLocaleTimeString() }, ...h.slice(0, 7)]);
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+    } catch (e) {
       setError(e.message.includes("fetch")
-        ? `Cannot reach ${baseUrl}\n\nStart the server:\n  uvicorn api.main:app --reload`
+        ? `Could not connect to ${baseUrl}\n\nMake sure the server is running:\nuvicorn main:app --reload`
         : e.message);
     } finally { setLoading(false); }
   }, [baseUrl, op, inputs]);
 
   useEffect(() => {
-    const h = e => { if((e.ctrlKey||e.metaKey)&&e.key==="Enter") call(); };
+    const h = e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") call(); };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [call]);
 
-  const accent = tabMeta.accent;
-
-  const s = {
-    root: { minHeight:"100vh", background:T.bg,
-      backgroundImage:`radial-gradient(${T.border}30 1px, transparent 1px)`,
-      backgroundSize:"32px 32px", paddingBottom:80 },
-    header: { borderBottom:`1px solid ${T.border}`, background:`${T.bgPanel}ee`,
-      backdropFilter:"blur(12px)", position:"sticky", top:0, zIndex:100,
-      padding:"0 28px", display:"flex", alignItems:"center", gap:20, height:56 },
-    logo: { fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:"0.12em",
-      color:T.amber, textShadow:`0 0 16px ${T.amber}60`, animation:"glow 4s ease infinite",
-      whiteSpace:"nowrap" },
-    badge: { fontSize:10, color:T.muted, background:T.border, borderRadius:3,
-      padding:"2px 6px", letterSpacing:"0.1em", fontFamily:"'IBM Plex Mono',monospace" },
-    body: { maxWidth:1200, margin:"0 auto", padding:"28px 28px 0",
-      display:"grid", gridTemplateColumns:"216px 1fr", gap:20 },
-    sidebar: { display:"flex", flexDirection:"column", gap:4 },
-    tabBtn: (a, ac) => ({
-      width:"100%", padding:"7px 14px", borderRadius:6, cursor:"pointer",
-      background: a ? ac : "transparent",
-      color: a ? T.bg : T.muted,
-      fontSize:12, fontWeight:a?600:400, letterSpacing:"0.05em",
-      transition:"all 0.15s", border:"none",
-      fontFamily:"'IBM Plex Sans',sans-serif", textAlign:"left" }),
-    opBtn: (a, ac) => ({
-      display:"flex", alignItems:"center", gap:10, padding:"8px 10px",
-      borderRadius:5, cursor:"pointer",
-      background: a ? `${ac}15` : "transparent",
-      border:`1px solid ${a ? ac+"60" : "transparent"}`,
-      color: a ? ac : T.text,
-      fontSize:13, transition:"all 0.12s", width:"100%" }),
-    opIcon: (a, ac) => ({
-      width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center",
-      background: a ? ac+"30" : T.border, borderRadius:4,
-      fontSize:11, flexShrink:0, color: a ? ac : T.muted,
-      fontFamily:"'IBM Plex Mono',monospace" }),
-    main: { display:"flex", flexDirection:"column", gap:16 },
-    opHeader: { background:T.bgPanel, border:`1px solid ${T.border}`,
-      borderRadius:8, padding:"16px 20px",
-      display:"flex", alignItems:"center", gap:14 },
-    opHeaderIcon: { width:44, height:44, borderRadius:8,
-      background:`${accent}15`, border:`1px solid ${accent}60`,
-      display:"flex", alignItems:"center", justifyContent:"center",
-      fontSize:16, color:accent, fontFamily:"'IBM Plex Mono',monospace", flexShrink:0 },
-    opPath: { marginLeft:"auto", fontSize:11, color:accent,
-      fontFamily:"'IBM Plex Mono',monospace",
-      background:`${accent}10`, border:`1px solid ${accent}30`,
-      padding:"3px 8px", borderRadius:4, whiteSpace:"nowrap" },
-    noteBox: { background:`${accent}08`, border:`1px solid ${accent}25`,
-      borderRadius:6, padding:"8px 14px",
-      fontSize:11, color:accent, fontFamily:"'IBM Plex Mono',monospace",
-      lineHeight:1.6 },
-    card: { background:T.bgPanel, border:`1px solid ${T.border}`, borderRadius:8, padding:"20px" },
-    formGrid: { display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(260px,1fr))",
-      gap:16, marginBottom:20 },
-    hint: { fontSize:10, color:T.textDim, fontFamily:"'IBM Plex Mono',monospace", marginTop:3 },
-    submitBtn: (l) => ({
-      padding:"10px 28px", borderRadius:6,
-      background: l ? `${accent}60` : accent,
-      color:T.bg, fontWeight:600, fontSize:14, border:"none",
-      cursor:l?"not-allowed":"pointer", opacity:l?0.7:1, transition:"all 0.15s",
-      display:"flex", alignItems:"center", gap:8,
-      fontFamily:"'IBM Plex Sans',sans-serif" }),
-    dot: (ok) => ({ width:8, height:8, borderRadius:"50%",
-      background:ok?T.green:T.red, boxShadow:`0 0 8px ${ok?T.green:T.red}` }),
-    errorBox: { background:`${T.red}10`, border:`1px solid ${T.red}40`,
-      borderRadius:8, padding:"16px 20px",
-      fontFamily:"'IBM Plex Mono',monospace",
-      fontSize:13, color:T.red, lineHeight:1.7, whiteSpace:"pre-wrap" },
-    empty: { textAlign:"center", padding:"48px 20px",
-      color:T.textDim, fontFamily:"'IBM Plex Mono',monospace", fontSize:12, lineHeight:1.8 },
-  };
-
   const renderField = f => (
-    <div key={f.key} style={{display:"flex",flexDirection:"column",gap:6}}>
+    <div key={f.key}>
       <label>{f.label}</label>
-      {f.type==="select"
-        ? <select value={inputs[f.key]??f.options[0]}
-            onChange={e=>setInputs(p=>({...p,[f.key]:e.target.value}))}>
-            {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+      {f.type === "select"
+        ? <select value={inputs[f.key] ?? f.options[0]}
+            onChange={e => setInputs(p => ({ ...p, [f.key]: e.target.value }))}>
+            {f.options.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
-        : <input value={inputs[f.key]??""}
+        : <input
+            value={inputs[f.key] ?? ""}
             placeholder={f.placeholder}
-            onChange={e=>setInputs(p=>({...p,[f.key]:e.target.value}))}
-            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();call();}}}
+            onChange={e => setInputs(p => ({ ...p, [f.key]: e.target.value }))}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); call(); } }}
             spellCheck={false} autoComplete="off"
           />
       }
-      {f.hint && <div style={s.hint}>↳ {f.hint}</div>}
+      {f.hint && (
+        <div style={{ fontSize:11, color:C.inkDim, marginTop:4, fontFamily:"'JetBrains Mono',monospace" }}>
+          {f.hint}
+        </div>
+      )}
     </div>
   );
 
   return (
-    <div style={s.root}>
-      <FontLoader/><GlobalStyles/>
-      <header style={s.header}>
-        <div style={s.logo}>
-          CRYPTO<span style={{color:T.cyan}}>_</span>API
-          <span style={{...s.badge, marginLeft:8}}>v0.1</span>
+    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column" }}>
+      <FontLoader />
+      <GlobalStyles />
+
+      {/* ── Top bar ── */}
+      <header style={{
+        height:52, borderBottom:`1px solid ${C.border}`,
+        background:C.surface,
+        display:"flex", alignItems:"center",
+        padding:"0 24px", gap:16,
+        position:"sticky", top:0, zIndex:100,
+      }}>
+        <div style={{
+          fontFamily:"'Syne',sans-serif",
+          fontWeight:800, fontSize:17, letterSpacing:"-0.02em",
+          color:C.ink, display:"flex", alignItems:"center", gap:8,
+        }}>
+          crypto
+          <span style={{
+            background:C.ink, color:C.surface,
+            fontSize:10, fontWeight:600, padding:"2px 6px",
+            borderRadius:5, fontFamily:"'JetBrains Mono',monospace",
+            letterSpacing:"0.05em",
+          }}>API</span>
         </div>
-        {editingUrl
-          ? <input autoFocus defaultValue={baseUrl} style={{width:360,fontSize:12,padding:"5px 10px"}}
-              onBlur={e=>{setBaseUrl(e.target.value.replace(/\/$/,""));setEditingUrl(false);}}
-              onKeyDown={e=>{if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,""));setEditingUrl(false);}}}
-            />
-          : <div style={{display:"flex",alignItems:"center",gap:8,background:T.bgInput,
-              border:`1px solid ${T.border}`,borderRadius:6,padding:"4px 10px",
-              cursor:"pointer",maxWidth:380,flex:1}}
-              onClick={()=>setEditingUrl(true)} title="Click to change API URL">
-              <span style={{fontSize:10,color:T.muted,fontFamily:"'IBM Plex Mono',monospace",whiteSpace:"nowrap"}}>API</span>
-              <span style={{fontSize:12,color:T.cyan,fontFamily:"'IBM Plex Mono',monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{baseUrl}</span>
-              <div style={{width:7,height:7,borderRadius:"50%",background:T.green,boxShadow:`0 0 6px ${T.green}`,flexShrink:0}}/>
-            </div>
-        }
-        <div style={{marginLeft:"auto",fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>
-          <a href={`${baseUrl}/docs`} target="_blank" rel="noreferrer"
-            style={{color:T.cyan,textDecoration:"none"}}>/docs ↗</a>
+
+        {/* URL bar */}
+        <div style={{ flex:1, maxWidth:400 }}>
+          {editingUrl
+            ? <input autoFocus defaultValue={baseUrl}
+                style={{ height:32, fontSize:12, borderRadius:6, padding:"0 10px" }}
+                onBlur={e => { setBaseUrl(e.target.value.replace(/\/$/, "")); setEditingUrl(false); }}
+                onKeyDown={e => { if (e.key === "Enter") { setBaseUrl(e.target.value.replace(/\/$/, "")); setEditingUrl(false); } }}
+              />
+            : <div onClick={() => setEditingUrl(true)}
+                title="Click to edit API URL"
+                style={{
+                  height:32, display:"flex", alignItems:"center", gap:8,
+                  background:C.surfaceAlt, border:`1.5px solid ${C.border}`,
+                  borderRadius:8, padding:"0 10px", cursor:"text",
+                  transition:"border-color 0.15s",
+                }}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:C.green, flexShrink:0 }}/>
+                <span style={{
+                  fontSize:12, color:C.inkMid,
+                  fontFamily:"'JetBrains Mono',monospace",
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                }}>{baseUrl}</span>
+              </div>
+          }
         </div>
+
+        <a href={`${baseUrl}/docs`} target="_blank" rel="noreferrer" style={{
+          marginLeft:"auto",
+          fontSize:12, color:C.inkMid,
+          textDecoration:"none", fontWeight:500,
+          display:"flex", alignItems:"center", gap:4,
+        }}>
+          Swagger docs
+          <span style={{ fontSize:10 }}>↗</span>
+        </a>
       </header>
 
-      <div style={s.body}>
-        <aside style={s.sidebar}>
-          {/* Tab switcher */}
-          <div style={{background:T.bgPanel,border:`1px solid ${T.border}`,borderRadius:8,
-            padding:4,marginBottom:8,display:"flex",flexDirection:"column",gap:2}}>
-            {Object.entries(TAB_META).map(([id,meta])=>(
-              <button key={id} style={s.tabBtn(tab===id, meta.accent)} onClick={()=>setTab(id)}>
-                {meta.icon}  {meta.label}
+      {/* ── Body ── */}
+      <div style={{ display:"flex", flex:1 }}>
+
+        {/* ── Sidebar ── */}
+        <nav style={{
+          width:220, flexShrink:0,
+          borderRight:`1px solid ${C.border}`,
+          background:C.surface,
+          padding:"16px 12px",
+          position:"sticky", top:52, height:"calc(100vh - 52px)",
+          overflowY:"auto",
+        }}>
+          {Object.entries(SECTIONS).map(([id, label]) => {
+            const isActive = section === id;
+            return (
+              <div key={id} style={{ marginBottom:4 }}>
+                {/* Section header — also a button */}
+                <button
+                  onClick={() => setSection(id)}
+                  style={{
+                    width:"100%", textAlign:"left",
+                    padding:"7px 10px", borderRadius:7,
+                    fontFamily:"'DM Sans',sans-serif",
+                    fontSize:13, fontWeight:isActive ? 600 : 500,
+                    color: isActive ? C.blue : C.inkMid,
+                    background: isActive ? C.blueLight : "transparent",
+                    transition:"all 0.12s",
+                    marginBottom: isActive ? 4 : 0,
+                  }}>
+                  {label}
+                </button>
+
+                {/* Op list — only show for active section */}
+                {isActive && OPS[id].map(o => (
+                  <button key={o.id}
+                    onClick={() => setOpId(o.id)}
+                    style={{
+                      width:"100%", textAlign:"left",
+                      padding:"5px 10px 5px 20px",
+                      borderRadius:6,
+                      fontFamily:"'DM Sans',sans-serif",
+                      fontSize:12.5,
+                      fontWeight: opId === o.id ? 500 : 400,
+                      color: opId === o.id ? C.ink : C.inkMid,
+                      background: opId === o.id ? C.surfaceAlt : "transparent",
+                      transition:"all 0.1s",
+                      display:"flex", alignItems:"center", gap:8,
+                    }}>
+                    <span style={{
+                      width:2, height:14, borderRadius:1, flexShrink:0,
+                      background: opId === o.id ? C.blue : "transparent",
+                      transition:"background 0.1s",
+                    }}/>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* ── Main ── */}
+        <main style={{
+          flex:1, padding:"28px 32px",
+          maxWidth:840, minWidth:0,
+        }}>
+
+          {/* Op title row */}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+              <MethodBadge method={op.method} />
+              <code style={{
+                fontFamily:"'JetBrains Mono',monospace",
+                fontSize:12.5, color:C.inkMid,
+                background:C.surfaceAlt,
+                padding:"2px 8px", borderRadius:5,
+                border:`1px solid ${C.border}`,
+              }}>{op.path}</code>
+            </div>
+            <h1 style={{
+              fontFamily:"'Syne',sans-serif",
+              fontWeight:700, fontSize:22,
+              letterSpacing:"-0.03em", color:C.ink,
+              marginBottom:4,
+            }}>{op.label}</h1>
+            <p style={{ fontSize:13.5, color:C.inkMid }}>{op.desc}</p>
+          </div>
+
+          {/* Step note */}
+          {op.note && (
+            <div style={{
+              background:C.blueLight,
+              border:`1px solid ${C.blueMid}`,
+              borderRadius:8, padding:"10px 14px",
+              fontSize:12.5, color:C.blue, marginBottom:16,
+              fontWeight:500,
+            }}>
+              {op.note}
+            </div>
+          )}
+
+          {/* Form card */}
+          <div style={{
+            background:C.surface,
+            border:`1px solid ${C.border}`,
+            borderRadius:12,
+            padding:20,
+            marginBottom:16,
+            boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
+          }}>
+            {op.fields.length > 0 ? (
+              <div style={{
+                display:"grid",
+                gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))",
+                gap:14,
+                marginBottom:18,
+              }}>
+                {op.fields.map(renderField)}
+              </div>
+            ) : (
+              <p style={{ fontSize:13, color:C.inkDim, marginBottom:16 }}>
+                No parameters — just send the request.
+              </p>
+            )}
+
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <button
+                onClick={call}
+                disabled={loading}
+                style={{
+                  height:36, padding:"0 20px",
+                  background: loading ? C.inkDim : C.ink,
+                  color:"#fff",
+                  fontWeight:600, fontSize:13.5,
+                  borderRadius:8,
+                  display:"flex", alignItems:"center", gap:8,
+                  transition:"background 0.15s, transform 0.1s",
+                  transform: loading ? "none" : undefined,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}>
+                {loading ? <><Spinner /> Running…</> : "Run"}
               </button>
-            ))}
-          </div>
-          {/* Op list */}
-          {ops.map(o=>(
-            <button key={o.id} style={s.opBtn(opId===o.id, accent)} onClick={()=>setOpId(o.id)}>
-              <span style={s.opIcon(opId===o.id, accent)}>{o.icon}</span>
-              <span>{o.label}</span>
-            </button>
-          ))}
-        </aside>
-
-        <main style={s.main}>
-          <div style={s.opHeader}>
-            <div style={s.opHeaderIcon}>{op.icon}</div>
-            <div>
-              <div style={{fontFamily:"'IBM Plex Sans',sans-serif",fontSize:16,fontWeight:600,color:T.white,marginBottom:2}}>{op.label}</div>
-              <div style={{fontSize:12,color:T.muted,fontFamily:"'IBM Plex Mono',monospace"}}>{op.desc}</div>
-            </div>
-            <div style={s.opPath}>
-              <span style={{color:T.amberDim}}>{op.method} </span>{op.path}
+              <span style={{
+                fontSize:11.5, color:C.inkDim,
+                fontFamily:"'JetBrains Mono',monospace",
+              }}>⌃ Enter</span>
             </div>
           </div>
 
-          {op.note && <div style={s.noteBox}>ℹ  {op.note}</div>}
-
-          <div style={s.card}>
-            {op.fields.length>0
-              ? <div style={s.formGrid}>{op.fields.map(renderField)}</div>
-              : <div style={{...s.hint,fontSize:12,color:T.muted,marginBottom:16}}>No parameters — just execute.</div>
-            }
-            <div style={{display:"flex",alignItems:"center",gap:12}}>
-              <button style={s.submitBtn(loading)} onClick={call} disabled={loading}>
-                {loading ? <><span className="pulse">⬡</span> Computing…</> : <>▶ Execute</>}
-              </button>
-              <span style={{fontSize:10,color:T.textDim,fontFamily:"'IBM Plex Mono',monospace"}}>⌃ Enter</span>
-            </div>
-          </div>
-
+          {/* Error */}
           {error && (
-            <div style={s.errorBox} className="fade-in">
-              <strong style={{color:T.red}}>✕  Error</strong><br/><br/>{error}
-            </div>
-          )}
-
-          {result!==null && !error && (
-            <div style={{background:T.bgResult,border:`1px solid ${T.border}`,borderRadius:8,overflow:"hidden"}} className="fade-in" ref={resultRef}>
-              <div style={{padding:"10px 18px",background:T.bgPanel,borderBottom:`1px solid ${T.border}`,
-                display:"flex",alignItems:"center",gap:10}}>
-                <div style={s.dot(true)}/>
-                <span style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:T.muted,fontFamily:"'IBM Plex Mono',monospace"}}>Response</span>
-                <span style={{marginLeft:"auto",fontSize:10,color:T.textDim,fontFamily:"'IBM Plex Mono',monospace"}}>
-                  {op.method} {op.path}
-                </span>
+            <div className="fade-up" style={{
+              background:C.redLight, border:`1px solid #F5C2C0`,
+              borderRadius:10, padding:"14px 16px",
+              marginBottom:16,
+            }}>
+              <div style={{ fontWeight:600, color:C.red, marginBottom:6, fontSize:13 }}>
+                Error
               </div>
-              <div style={{padding:"18px 20px",fontFamily:"'IBM Plex Mono',monospace",fontSize:13,lineHeight:1.8,overflowX:"auto",maxHeight:520}}>
-                <JsonTree data={result}/>
+              <pre style={{
+                fontFamily:"'JetBrains Mono',monospace",
+                fontSize:12, color:C.red,
+                whiteSpace:"pre-wrap", margin:0,
+              }}>{error}</pre>
+            </div>
+          )}
+
+          {/* Result */}
+          {result !== null && !error && (
+            <div className="fade-up" ref={resultRef} style={{
+              background:C.surface,
+              border:`1px solid ${C.border}`,
+              borderRadius:12,
+              overflow:"hidden",
+              marginBottom:16,
+              boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
+            }}>
+              <div style={{
+                padding:"10px 16px",
+                borderBottom:`1px solid ${C.border}`,
+                display:"flex", alignItems:"center", gap:10,
+                background:C.surfaceAlt,
+              }}>
+                <span style={{
+                  width:7, height:7, borderRadius:"50%",
+                  background:C.green, flexShrink:0,
+                }}/>
+                <span style={{
+                  fontSize:11.5, fontWeight:600, color:C.inkMid,
+                  letterSpacing:"0.04em", textTransform:"uppercase",
+                }}>Response</span>
+                <span style={{
+                  marginLeft:"auto",
+                  fontFamily:"'JetBrains Mono',monospace",
+                  fontSize:11, color:C.inkDim,
+                }}>200 OK</span>
+              </div>
+              <div style={{
+                padding:"16px 18px",
+                fontFamily:"'JetBrains Mono',monospace",
+                fontSize:12.5, lineHeight:1.85,
+                overflowX:"auto", maxHeight:480,
+              }}>
+                <JsonValue data={result} />
               </div>
             </div>
           )}
 
-          {result===null && !error && !loading && (
-            <div style={s.empty}>
-              <div style={{fontSize:32,marginBottom:12}}>⟨ψ⟩</div>
-              <div>Fill in the parameters and press <strong style={{color:accent}}>Execute</strong></div>
-              <div style={{marginTop:6}}>or <strong style={{color:T.cyan}}>Ctrl + Enter</strong></div>
+          {/* Empty state */}
+          {result === null && !error && !loading && (
+            <div style={{
+              textAlign:"center", padding:"56px 20px",
+              color:C.inkDim,
+            }}>
+              <div style={{
+                width:48, height:48, borderRadius:12,
+                border:`2px dashed ${C.border}`,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                margin:"0 auto 14px",
+                fontSize:20, color:C.borderDk,
+              }}>
+                ƒ
+              </div>
+              <div style={{ fontWeight:500, color:C.inkMid, marginBottom:4 }}>
+                Ready to execute
+              </div>
+              <div style={{ fontSize:13 }}>
+                Fill in the fields and press{" "}
+                <kbd style={{
+                  background:C.surfaceAlt, border:`1px solid ${C.border}`,
+                  borderRadius:4, padding:"1px 6px", fontSize:11.5,
+                  fontFamily:"'JetBrains Mono',monospace", color:C.inkMid,
+                }}>Run</kbd>
+              </div>
             </div>
           )}
 
-          {history.length>0 && (
-            <div style={s.card}>
-              <div style={{fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:T.textDim,marginBottom:10,fontFamily:"'IBM Plex Mono',monospace"}}>Recent calls</div>
-              {history.map((h,i)=>(
-                <div key={i} onClick={()=>setResult(h.result)}
-                  style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",
-                    borderBottom:`1px solid ${T.border}`,cursor:"pointer"}}>
-                  <div style={s.dot(true)}/>
-                  <span style={{fontSize:12,color:T.text,flex:1}}>{h.op}</span>
-                  <span style={{fontSize:11,color:T.textDim,fontFamily:"'IBM Plex Mono',monospace"}}>{h.ts}</span>
+          {/* History */}
+          {history.length > 0 && (
+            <div style={{
+              background:C.surface, border:`1px solid ${C.border}`,
+              borderRadius:12, overflow:"hidden",
+              boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
+            }}>
+              <div style={{
+                padding:"10px 16px", borderBottom:`1px solid ${C.border}`,
+                background:C.surfaceAlt,
+                fontSize:11.5, fontWeight:600, color:C.inkMid,
+                letterSpacing:"0.04em", textTransform:"uppercase",
+              }}>
+                History
+              </div>
+              {history.map((h, i) => (
+                <div key={i} onClick={() => setResult(h.result)}
+                  style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    padding:"9px 16px",
+                    borderBottom: i < history.length - 1 ? `1px solid ${C.border}` : "none",
+                    cursor:"pointer",
+                    transition:"background 0.1s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceAlt}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <MethodBadge method={h.method} />
+                  <span style={{ fontSize:13, color:C.ink, flex:1, fontWeight:500 }}>{h.label}</span>
+                  <span style={{
+                    fontFamily:"'JetBrains Mono',monospace",
+                    fontSize:11, color:C.inkDim,
+                  }}>{h.ts}</span>
                 </div>
               ))}
             </div>
