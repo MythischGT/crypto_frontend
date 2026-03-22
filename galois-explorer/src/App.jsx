@@ -716,22 +716,22 @@ function JsonValue({ data, depth = 0 }) {
     // don't explode the layout. The full value is always visible — just scroll.
     if (isHex || isBig) {
       const color = isHex ? C.teal : C.orange;
-      const isLong = data.length > 64;
-      if (isLong) {
+      if (data.length > 64) {
         return (
           <div style={{
-            overflowX:    "auto",
-            overflowY:    "hidden",
-            maxWidth:     "100%",
+            display:      "block",
+            wordBreak:    "break-all",
+            overflowWrap: "anywhere",
+            color,
+            fontSize:     11.5,
+            lineHeight:   1.7,
             background:   C.input,
             border:       `1px solid ${C.border}`,
             borderRadius: 6,
             padding:      "6px 10px",
             marginTop:    4,
             marginBottom: 2,
-          }}>
-            <span style={{ color, whiteSpace: "pre", fontSize: 11.5 }}>{data}</span>
-          </div>
+          }}>{data}</div>
         );
       }
       return <span style={{ color }}>{data}</span>;
