@@ -422,10 +422,7 @@ const sx = {
     padding:    "32px 36px",
     background: C.bg,
   },
-  mainInner: {
-    maxWidth: 820,
-    margin:   "0 auto",
-  },
+
 
   // ── Op header ──
   opHeader: {
@@ -1014,7 +1011,7 @@ export default function CryptoExplorer() {
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         html, body, #root { height:100%; background:${C.bg}; scrollbar-gutter: stable; }
         body {
-          background:${C.bg}; color:${C.text};
+          overflow-x:hidden; background:${C.bg}; color:${C.text};
           font-family:'Outfit', sans-serif;
           font-size:14px; line-height:1.5;
           -webkit-font-smoothing:antialiased;
@@ -1086,7 +1083,6 @@ export default function CryptoExplorer() {
         </div>
 
         <main style={sx.main}>
-          <div style={sx.mainInner}>
           <div style={sx.opHeader}>
             <div style={sx.opTagRow}>
               <MethodBadge method={op.method} />
@@ -1107,7 +1103,6 @@ export default function CryptoExplorer() {
           {result === null && !error && !loading && <EmptyState />}
 
           {history.length > 0 && <HistoryPanel history={history} onSelect={setResult} />}
-          </div>
         </main>
       </div>
     </div>
