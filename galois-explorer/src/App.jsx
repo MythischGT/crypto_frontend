@@ -720,7 +720,8 @@ function JsonValue({ data, depth = 0 }) {
       if (data.length > 64) {
         return (
           <div style={{
-            display:      "block",
+            width:        "100%",
+            boxSizing:    "border-box",
             wordBreak:    "break-all",
             overflowWrap: "anywhere",
             color,
