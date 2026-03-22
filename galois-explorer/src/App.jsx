@@ -420,9 +420,11 @@ const sx = {
     flex:       1,
     minWidth:   0,
     padding:    "32px 36px",
+    background: C.bg,
   },
   mainInner: {
     maxWidth: 820,
+    margin:   "0 auto",
   },
 
   // ── Op header ──
