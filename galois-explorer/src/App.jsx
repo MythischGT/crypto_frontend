@@ -526,7 +526,8 @@ const sx = {
     border:        `1px solid ${C.border}`,
     borderRadius:  12,
     marginBottom:  16,
-    maxHeight:     520,
+    maxHeight:     500,
+    overflow:      "hidden",
     display:       "flex",
     flexDirection: "column",
   },
@@ -569,6 +570,8 @@ const sx = {
     overflowX:  "hidden",
     flex:       1,
     minHeight:  0,
+    minWidth:   0,
+    width:      "100%",
   },
   errorCard: {
     background:   C.redDim,
@@ -706,20 +709,22 @@ function Spinner() {
 // No truncation — display every character of long numbers.
 // Hex values get word-break so they wrap cleanly inside the panel.
 function JsonValue({ data, depth = 0 }) {
-  if (data === null)              return <span style={{ color: C.textDim }}>null</span>;
-  if (typeof data === "boolean")  return <span style={{ color: data ? C.green : C.red, fontWeight: 500 }}>{String(data)}</span>;
-  if (typeof data === "number")   return <span style={{ color: C.orange }}>{data}</span>;
+  // Primitives
+  if (data === null)             return <span style={{ color: C.textDim }}>null</span>;
+  if (typeof data === "boolean") return <span style={{ color: data ? C.green : C.red, fontWeight: 500 }}>{String(data)}</span>;
+  if (typeof data === "number")  return <span style={{ color: C.orange }}>{data}</span>;
 
   if (typeof data === "string") {
     const isHex = data.startsWith("0x");
     const isBig = /^\d{10,}$/.test(data);
-    // Large integers and hex values get their own scrollable block so they
-    // don't explode the layout. The full value is always visible — just scroll.
     if (isHex || isBig) {
       const color = isHex ? C.teal : C.orange;
       if (data.length > 64) {
+        // Long number: block element that wraps within its container.
+        // Must be a div (not span) so width:100% has a block parent to resolve against.
         return (
           <div style={{
+            display:      "block",
             width:        "100%",
             boxSizing:    "border-box",
             wordBreak:    "break-all",
@@ -741,10 +746,11 @@ function JsonValue({ data, depth = 0 }) {
     return <span style={{ color: C.green }}>"{data}"</span>;
   }
 
+  // Arrays — use div so width flows down to children
   if (Array.isArray(data)) {
     if (!data.length) return <span style={{ color: C.textDim }}>[]</span>;
     return (
-      <span>
+      <div>
         <span style={{ color: C.textDim }}>{"["}</span>
         {data.map((v, i) => (
           <div key={i} style={{ paddingLeft: 20 }}>
@@ -753,13 +759,14 @@ function JsonValue({ data, depth = 0 }) {
           </div>
         ))}
         <span style={{ color: C.textDim }}>{"]"}</span>
-      </span>
+      </div>
     );
   }
 
+  // Objects — div containers so block-level children get correct width
   if (typeof data === "object") {
     return (
-      <span>
+      <div>
         {Object.entries(data).map(([k, v], i, arr) => (
           <div key={k} style={{ paddingLeft: depth === 0 ? 0 : 20 }}>
             <span style={{ color: C.accentBright }}>{k}</span>
@@ -768,7 +775,7 @@ function JsonValue({ data, depth = 0 }) {
             {i < arr.length - 1 && <span style={{ color: C.textDim }}>,</span>}
           </div>
         ))}
-      </span>
+      </div>
     );
   }
 
