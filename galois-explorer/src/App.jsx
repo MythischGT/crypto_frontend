@@ -419,8 +419,11 @@ const sx = {
   main: {
     flex:       1,
     minWidth:   0,
-    padding:    "32px 36px",
+    overflow:   "hidden",
     background: C.bg,
+  },
+  mainPad: {
+    padding: "32px 36px",
   },
 
 
@@ -1094,6 +1097,7 @@ export default function CryptoExplorer() {
         </div>
 
         <main style={sx.main}>
+          <div style={sx.mainPad}>
           <div style={sx.opHeader}>
             <div style={sx.opTagRow}>
               <MethodBadge method={op.method} />
@@ -1114,6 +1118,7 @@ export default function CryptoExplorer() {
           {result === null && !error && !loading && <EmptyState />}
 
           {history.length > 0 && <HistoryPanel history={history} onSelect={setResult} />}
+          </div>
         </main>
       </div>
     </div>
