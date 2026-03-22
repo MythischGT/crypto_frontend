@@ -254,8 +254,7 @@ const mono = { fontFamily: "'Geist Mono', 'JetBrains Mono', monospace" };
 
 const sx = {
   root: {
-    minHeight:     "100vh",
-    background:    C.bg,
+    minHeight:     "100%",
     display:       "flex",
     flexDirection: "column",
     color:         C.text,
@@ -344,11 +343,15 @@ const sx = {
   },
 
   // ── Sidebar ──
-  sidebar: {
+  // Outer column stretches full page height so the panel background
+  // never ends mid-scroll. Inner nav is sticky inside it.
+  sidebarCol: {
     width:       232,
     flexShrink:  0,
     background:  C.panel,
     borderRight: `1px solid ${C.border}`,
+  },
+  sidebar: {
     padding:     "20px 12px",
     position:    "sticky",
     top:         56,
@@ -1007,7 +1010,7 @@ export default function CryptoExplorer() {
       <style>{`
         @import url('${FONTS_URL}');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        html, body { height:100%; scrollbar-gutter: stable; }
+        html, body { height:100%; background:${C.bg}; scrollbar-gutter: stable; }
         body {
           background:${C.bg}; color:${C.text};
           font-family:'Outfit', sans-serif;
@@ -1076,7 +1079,9 @@ export default function CryptoExplorer() {
 
       {/* Body */}
       <div style={sx.body}>
-        <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId} />
+        <div style={sx.sidebarCol}>
+          <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId} />
+        </div>
 
         <main style={sx.main}>
           <div style={sx.mainInner}>
