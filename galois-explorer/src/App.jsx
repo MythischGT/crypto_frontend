@@ -592,7 +592,7 @@ export default function CryptoExplorer() {
   }, [call]);
 
   return (
-    <div style={{height:"100dvh", display:"flex", flexDirection:"column", color:C.text, overflow:"hidden"}}>
+    <div style={{minHeight:"100dvh", display:"flex", flexDirection:"column", color:C.text}}>
       <style>{`
         @import url('${FONTS_URL}');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -645,12 +645,13 @@ export default function CryptoExplorer() {
         .fade-up { animation:fadeUp 0.18s ease both; }
 
         /* ── Layout ── */
-        .layout-body   { display:flex; flex:1; min-height:0; overflow:hidden; }
+        .layout-body   { display:flex; flex:1; }
         .sidebar-col   {
           width:14.5rem; flex-shrink:0;
           background:${C.panel}; border-right:1px solid ${C.border};
+          align-self:stretch;
         }
-        .main-area     { flex:1; min-width:0; min-height:0; overflow-y:auto; background:${C.bg}; }
+        .main-area     { flex:1; min-width:0; background:${C.bg}; }
         .main-pad      { padding:2rem 2.25rem; }
         .mobile-tabs   { display:none; }
 
