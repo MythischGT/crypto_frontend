@@ -243,7 +243,7 @@ const SECTIONS = {
   field: { label: "Prime Field", sub: "𝔽ₚ arithmetic" },
   ecc:   { label: "Elliptic Curves", sub: "ECC operations" },
   utils: { label: "Number Theory", sub: "Primes & modular math" },
-  dhke:  { label: "Diffie-Hellman", sub: "Key exchange" },
+  dhke:  { label: "Diffie-Hellman", sub: "Key exchange",          icon: "⇄" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -821,17 +821,17 @@ function Sidebar({ section, opId, onSection, onOp }) {
         const isActiveSection = section === id;
         return (
           <div key={id}>
-            <button style={sx.sectionBtn(isActiveSection)} onClick={() => onSection(id)}>
-              <span style={sx.sectionBtnLabel(isActiveSection)}>{meta.label}</span>
-              <span style={sx.sectionBtnSub}>{meta.sub}</span>
+            <button className="section-btn" style={sx.sectionBtn(isActiveSection)} onClick={() => onSection(id)}>
+              <span className="section-label" style={sx.sectionBtnLabel(isActiveSection)}>{meta.label}</span>
+              <span className="section-sub" style={sx.sectionBtnSub}>{meta.sub}</span>
             </button>
 
             {isActiveSection && OPS[id].map(op => {
               const isActiveOp = opId === op.id;
               return (
-                <button key={op.id} style={sx.opBtn(isActiveOp)} onClick={() => onOp(op.id)}>
-                  <span style={sx.opBtnBar(isActiveOp)} />
-                  <span style={sx.opBtnLabel(isActiveOp)}>{op.label}</span>
+                <button key={op.id} className="op-btn" style={sx.opBtn(isActiveOp)} onClick={() => onOp(op.id)}>
+                  <span className="op-bar" style={sx.opBtnBar(isActiveOp)} />
+                  <span className="op-label" style={sx.opBtnLabel(isActiveOp)}>{op.label}</span>
                 </button>
               );
             })}
@@ -862,6 +862,32 @@ function OpForm({ op, inputs, onChange, onSubmit, loading }) {
         </button>
         <span style={sx.shortcut}>⌃ Enter</span>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="mobile-nav" style={{
+        position:"fixed", bottom:0, left:0, right:0, height:56,
+        background:C.panel, borderTop:`1px solid ${C.border}`,
+        display:"none", alignItems:"stretch", zIndex:200,
+      }}>
+        {Object.entries(SECTIONS).map(([id, meta]) => (
+          <button key={id}
+            onClick={() => { setSection(id); setOpId(OPS[id][0].id); }}
+            style={{
+              flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", gap:2,
+              background: section===id ? C.accentDim : "transparent",
+              border:"none", cursor:"pointer",
+              borderTop: section===id ? `2px solid ${C.accent}` : "2px solid transparent",
+              color: section===id ? C.accentBright : C.textDim,
+              fontSize:9, fontFamily:"'Outfit',sans-serif",
+              fontWeight:600, letterSpacing:"0.05em", textTransform:"uppercase",
+              transition:"all 0.15s",
+            }}>
+            <span style={{fontSize:20}}>{meta.icon}</span>
+            {meta.label}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
@@ -877,6 +903,32 @@ function ResultPanel({ result, op, resultRef }) {
       <div style={sx.resultBody}>
         <JsonValue data={result} />
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="mobile-nav" style={{
+        position:"fixed", bottom:0, left:0, right:0, height:56,
+        background:C.panel, borderTop:`1px solid ${C.border}`,
+        display:"none", alignItems:"stretch", zIndex:200,
+      }}>
+        {Object.entries(SECTIONS).map(([id, meta]) => (
+          <button key={id}
+            onClick={() => { setSection(id); setOpId(OPS[id][0].id); }}
+            style={{
+              flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", gap:2,
+              background: section===id ? C.accentDim : "transparent",
+              border:"none", cursor:"pointer",
+              borderTop: section===id ? `2px solid ${C.accent}` : "2px solid transparent",
+              color: section===id ? C.accentBright : C.textDim,
+              fontSize:9, fontFamily:"'Outfit',sans-serif",
+              fontWeight:600, letterSpacing:"0.05em", textTransform:"uppercase",
+              transition:"all 0.15s",
+            }}>
+            <span style={{fontSize:20}}>{meta.icon}</span>
+            {meta.label}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
@@ -899,6 +951,114 @@ function EmptyState() {
         Configure the parameters above and press{" "}
         <span style={{ color: C.accentBright }}>Run</span>
       </p>
+    </div>
+  );
+}
+
+function OutputPanel({ result, error, loading, op, resultRef }) {
+  return (
+    <div style={{
+      background:    C.panel,
+      border:        `1px solid ${C.border}`,
+      borderRadius:  12,
+      marginBottom:  16,
+      height:        480,
+      display:       "flex",
+      flexDirection: "column",
+      overflow:      "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding:      "10px 16px",
+        borderBottom: `1px solid ${C.border}`,
+        background:   C.input,
+        display:      "flex",
+        alignItems:   "center",
+        gap:          10,
+        flexShrink:   0,
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+          background: error ? C.red : result !== null ? C.green : C.borderMid,
+          boxShadow: error ? `0 0 8px ${C.red}` : result !== null ? `0 0 8px ${C.green}` : "none",
+          transition: "background 0.2s",
+        }}/>
+        <span style={{ fontFamily:"'Geist Mono',monospace", fontSize:11, fontWeight:500,
+          color:C.textMid, letterSpacing:"0.08em", textTransform:"uppercase" }}>
+          {loading ? "Running…" : error ? "Error" : result !== null ? "Response" : "Output"}
+        </span>
+        {result !== null && !error && (
+          <span style={{ marginLeft:"auto", fontFamily:"'Geist Mono',monospace",
+            fontSize:11, color:C.textDim }}>
+            200 OK · {op.method} {op.path}
+          </span>
+        )}
+      </div>
+
+      {/* Body — always fills remaining height, scrolls vertically */}
+      <div ref={resultRef} style={{
+        flex:      1,
+        minHeight: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding:   "18px 20px",
+        fontFamily:"'Geist Mono',monospace",
+        fontSize:  12.5,
+        lineHeight: 1.9,
+      }}>
+        {loading && (
+          <div style={{ display:"flex", alignItems:"center", gap:10,
+            height:"100%", justifyContent:"center", color:C.textDim }}>
+            <span style={{ display:"inline-block", width:14, height:14,
+              border:`2px solid ${C.accent}40`, borderTopColor:C.accent,
+              borderRadius:"50%", animation:"spin 0.65s linear infinite" }}/>
+            Computing…
+          </div>
+        )}
+
+        {!loading && error && (
+          <pre style={{ fontFamily:"'Geist Mono',monospace", fontSize:12,
+            color:C.red, whiteSpace:"pre-wrap", margin:0 }}>{error}</pre>
+        )}
+
+        {!loading && !error && result !== null && <JsonValue data={result} />}
+
+        {!loading && !error && result === null && (
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
+            justifyContent:"center", height:"100%", gap:10, color:C.textDim }}>
+            <div style={{ fontSize:28 }}>λ</div>
+            <div style={{ fontFamily:"'Outfit',sans-serif", fontSize:13 }}>
+              Run a request to see output
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="mobile-nav" style={{
+        position:"fixed", bottom:0, left:0, right:0, height:56,
+        background:C.panel, borderTop:`1px solid ${C.border}`,
+        display:"none", alignItems:"stretch", zIndex:200,
+      }}>
+        {Object.entries(SECTIONS).map(([id, meta]) => (
+          <button key={id}
+            onClick={() => { setSection(id); setOpId(OPS[id][0].id); }}
+            style={{
+              flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", gap:2,
+              background: section===id ? C.accentDim : "transparent",
+              border:"none", cursor:"pointer",
+              borderTop: section===id ? `2px solid ${C.accent}` : "2px solid transparent",
+              color: section===id ? C.accentBright : C.textDim,
+              fontSize:9, fontFamily:"'Outfit',sans-serif",
+              fontWeight:600, letterSpacing:"0.05em", textTransform:"uppercase",
+              transition:"all 0.15s",
+            }}>
+            <span style={{fontSize:20}}>{meta.icon}</span>
+            {meta.label}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
@@ -1064,6 +1224,32 @@ export default function CryptoExplorer() {
         @keyframes spin   { to{transform:rotate(360deg)} }
         .fade-up { animation:fadeUp 0.18s ease both; }
         a.docs-link:hover { color:${C.text} !important; border-color:${C.borderMid} !important; }
+
+        /* ── Responsive ── */
+        .sidebar-col { display:flex; }
+        .mobile-nav  { display:none; }
+
+        /* Tablet (≤900px): icon-only sidebar */
+        @media (max-width: 900px) {
+          .sidebar-col { width:52px !important; }
+          .section-label, .section-sub, .op-label { display:none !important; }
+          .section-btn { justify-content:center; padding:12px 0 !important; font-size:18px; }
+          .op-btn { justify-content:center; padding:10px 0 !important; }
+          .op-bar { display:none !important; }
+          .topbar-url { max-width:180px !important; }
+          .docs-txt { display:none; }
+        }
+
+        /* Mobile (≤600px): no sidebar, bottom tab bar */
+        @media (max-width: 600px) {
+          .sidebar-col { display:none !important; }
+          .mobile-nav  { display:flex !important; }
+          .topbar-url  { max-width:150px !important; }
+          .docs-link   { display:none !important; }
+          .main-pad    { padding:16px 16px 72px !important; }
+          .form-grid   { grid-template-columns:1fr !important; }
+          .out-panel   { height:340px !important; }
+        }
       `}</style>
 
       {/* Top bar */}
@@ -1080,7 +1266,7 @@ export default function CryptoExplorer() {
             onKeyDown={e => { if (e.key === "Enter") { setBaseUrl(e.target.value.replace(/\/$/, "")); setEditingUrl(false); } }}
           />
         ) : (
-          <div style={sx.urlBar} onClick={() => setEditingUrl(true)} title="Click to edit">
+          <div className="topbar-url url-bar" style={sx.urlBar} onClick={() => setEditingUrl(true)} title="Click to edit">
             <span style={sx.urlDot} />
             <span style={sx.urlText}>{baseUrl}</span>
           </div>
@@ -1094,12 +1280,12 @@ export default function CryptoExplorer() {
 
       {/* Body */}
       <div style={sx.body}>
-        <div style={sx.sidebarCol}>
+        <div className="sidebar-col" style={sx.sidebarCol}>
           <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId} />
         </div>
 
         <main style={sx.main}>
-          <div style={sx.mainPad}>
+          <div className="main-pad" style={sx.mainPad}>
           <div style={sx.opHeader}>
             <div style={sx.opTagRow}>
               <MethodBadge method={op.method} />
@@ -1113,16 +1299,44 @@ export default function CryptoExplorer() {
 
           <OpForm op={op} inputs={inputs} onChange={handleFieldChange} onSubmit={call} loading={loading} />
 
-          {error && <ErrorPanel error={error} />}
-
-          {result !== null && !error && <ResultPanel result={result} op={op} resultRef={resultRef} />}
-
-          {result === null && !error && !loading && <EmptyState />}
+          <OutputPanel
+            result={result}
+            error={error}
+            loading={loading}
+            op={op}
+            resultRef={resultRef}
+          />
 
           {history.length > 0 && <HistoryPanel history={history} onSelect={setResult} />}
           </div>
         </main>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="mobile-nav" style={{
+        position:"fixed", bottom:0, left:0, right:0, height:56,
+        background:C.panel, borderTop:`1px solid ${C.border}`,
+        display:"none", alignItems:"stretch", zIndex:200,
+      }}>
+        {Object.entries(SECTIONS).map(([id, meta]) => (
+          <button key={id}
+            onClick={() => { setSection(id); setOpId(OPS[id][0].id); }}
+            style={{
+              flex:1, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", gap:2,
+              background: section===id ? C.accentDim : "transparent",
+              border:"none", cursor:"pointer",
+              borderTop: section===id ? `2px solid ${C.accent}` : "2px solid transparent",
+              color: section===id ? C.accentBright : C.textDim,
+              fontSize:9, fontFamily:"'Outfit',sans-serif",
+              fontWeight:600, letterSpacing:"0.05em", textTransform:"uppercase",
+              transition:"all 0.15s",
+            }}>
+            <span style={{fontSize:20}}>{meta.icon}</span>
+            {meta.label}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
