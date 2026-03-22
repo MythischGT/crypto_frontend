@@ -338,8 +338,10 @@ const sx = {
 
   // ── Body ──
   body: {
-    display: "flex",
-    flex:    1,
+    display:  "flex",
+    flex:     1,
+    minWidth: 0,
+    overflow: "hidden",
   },
 
   // ── Sidebar ──
