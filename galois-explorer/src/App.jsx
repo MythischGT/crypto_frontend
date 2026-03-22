@@ -1012,7 +1012,7 @@ export default function CryptoExplorer() {
       <style>{`
         @import url('${FONTS_URL}');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        html, body { height:100%; background:${C.bg}; scrollbar-gutter: stable; }
+        html, body, #root { height:100%; background:${C.bg}; scrollbar-gutter: stable; }
         body {
           background:${C.bg}; color:${C.text};
           font-family:'Outfit', sans-serif;
