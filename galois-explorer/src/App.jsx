@@ -1,33 +1,34 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. CONSTANTS
+// 1. CONSTANTS & DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FONTS_URL =
-  "https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&" +
-  "family=Outfit:wght@400;500;600;700&display=swap";
+const FONTS = "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Fragment+Mono:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap";
 
 const C = {
-  bg:          "#0F1117",
-  panel:       "#161B27",
-  panelHover:  "#1C2333",
-  input:       "#1A2030",
-  border:      "#252D3D",
-  borderMid:   "#2E3A50",
-  text:        "#E2E8F4",
-  textMid:     "#8896AA",
-  textDim:     "#4A5568",
-  accent:      "#6366F1",
-  accentBright:"#818CF8",
-  accentDim:   "#1E1F45",
-  accentGlow:  "rgba(99,102,241,0.15)",
-  green:       "#34D399",
-  greenDim:    "#0D2B20",
-  red:         "#F87171",
-  redDim:      "#2B0F0F",
-  orange:      "#FB923C",
-  teal:        "#22D3EE",
+  bg:         "#F5F3EE",
+  bgDeep:     "#EDEAE2",
+  surface:    "#FFFFFF",
+  surfaceAlt: "#F9F8F5",
+  border:     "#D9D5CB",
+  borderMid:  "#C4BFB3",
+  ink:        "#1C1A17",
+  inkMid:     "#5C5850",
+  inkDim:     "#9C9890",
+  // Emerald accent
+  green:      "#1A6B45",
+  greenLight: "#E8F3ED",
+  greenMid:   "#7AB89A",
+  greenDim:   "#104030",
+  // Semantic
+  red:        "#C0392B",
+  redLight:   "#FBEAE8",
+  amber:      "#B7650A",
+  amberLight: "#FDF3E3",
+  blue:       "#1A5276",
+  blueLight:  "#EAF2FB",
+  teal:       "#0E6655",
 };
 
 const G_X = "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
@@ -35,57 +36,46 @@ const G_Y = "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"
 const CURVES = ["secp256k1", "p256", "p384"];
 const GROUPS = ["modp2048", "modp3072", "modp4096"];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. OPERATIONS CATALOGUE
-// ─────────────────────────────────────────────────────────────────────────────
-
 const OPS = {
   field: [
     { id:"element", label:"Create Element", desc:"Validate & normalise a value into GF(p)",
       method:"POST", path:"/api/field/element",
       fields:[
-        {key:"prime",label:"Prime p", placeholder:"223", hint:"decimal or 0x hex"},
-        {key:"value",label:"Value a", placeholder:"192", hint:"reduced mod p"},
+        {key:"prime",label:"Prime p",placeholder:"223",hint:"decimal or 0x hex"},
+        {key:"value",label:"Value a",placeholder:"192",hint:"reduced mod p"},
       ]},
-    { id:"add", label:"Add", desc:"a + b mod p",
-      method:"POST", path:"/api/field/add",
+    { id:"add", label:"Add", desc:"a + b mod p", method:"POST", path:"/api/field/add",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"sub", label:"Subtract", desc:"a − b mod p",
-      method:"POST", path:"/api/field/sub",
+    { id:"sub", label:"Subtract", desc:"a − b mod p", method:"POST", path:"/api/field/sub",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"mul", label:"Multiply", desc:"a × b mod p",
-      method:"POST", path:"/api/field/mul",
+    { id:"mul", label:"Multiply", desc:"a × b mod p", method:"POST", path:"/api/field/mul",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"a",placeholder:"192"},{key:"b",label:"b",placeholder:"105"}]},
-    { id:"div", label:"Divide", desc:"a × b⁻¹ mod p",
-      method:"POST", path:"/api/field/div",
+    { id:"div", label:"Divide", desc:"a × b⁻¹ mod p", method:"POST", path:"/api/field/div",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"a",label:"Numerator a",placeholder:"192"},{key:"b",label:"Divisor b",placeholder:"105"}]},
-    { id:"pow", label:"Power", desc:"base ^ exp mod p",
-      method:"POST", path:"/api/field/pow",
+    { id:"pow", label:"Power", desc:"base ^ exp mod p", method:"POST", path:"/api/field/pow",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"base",label:"Base",placeholder:"192"},{key:"exp",label:"Exponent",placeholder:"3",hint:"negative → inverse"}]},
-    { id:"inverse", label:"Inverse", desc:"Multiplicative inverse a⁻¹ in GF(p)",
-      method:"POST", path:"/api/field/inverse",
+    { id:"inverse", label:"Inverse", desc:"Multiplicative inverse a⁻¹ in GF(p)", method:"POST", path:"/api/field/inverse",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
-    { id:"neg", label:"Negate", desc:"Additive inverse p − a mod p",
-      method:"POST", path:"/api/field/neg",
+    { id:"neg", label:"Negate", desc:"Additive inverse p − a mod p", method:"POST", path:"/api/field/neg",
       fields:[{key:"prime",label:"Prime p",placeholder:"223"},{key:"value",label:"a",placeholder:"192"}]},
   ],
   ecc: [
-    { id:"curves",     label:"List Curves",       desc:"All available named curves",
-      method:"GET",  path:"/api/ecc/curves", fields:[] },
-    { id:"curve_info", label:"Curve Info",         desc:"Parameters for a specific curve",
-      method:"GET",  path:"/api/ecc/curves/:name",
+    { id:"curves",     label:"List Curves",      desc:"All available named curves",
+      method:"GET", path:"/api/ecc/curves", fields:[]},
+    { id:"curve_info", label:"Curve Info",        desc:"Parameters for a specific curve",
+      method:"GET", path:"/api/ecc/curves/:name",
       fields:[{key:"name",label:"Curve",type:"select",options:CURVES}]},
-    { id:"generator",  label:"Generator Point G",  desc:"Base point G coordinates",
-      method:"GET",  path:"/api/ecc/curves/:name/generator",
+    { id:"generator",  label:"Generator Point G", desc:"Base point G coordinates",
+      method:"GET", path:"/api/ecc/curves/:name/generator",
       fields:[{key:"name",label:"Curve",type:"select",options:CURVES}]},
-    { id:"validate",   label:"Validate Point",     desc:"Check whether (x, y) lies on the curve",
+    { id:"validate",   label:"Validate Point",    desc:"Check whether (x, y) lies on the curve",
       method:"POST", path:"/api/ecc/point/validate",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:CURVES},
         {key:"x",label:"x coordinate",placeholder:G_X,default:G_X,hint:"pre-filled: G·x"},
         {key:"y",label:"y coordinate",placeholder:G_Y,default:G_Y},
       ]},
-    { id:"point_add",  label:"Point Addition",     desc:"P₁ + P₂ on the curve",
+    { id:"point_add",  label:"Point Addition",    desc:"P₁ + P₂ on the curve",
       method:"POST", path:"/api/ecc/point/add",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:CURVES},
@@ -94,7 +84,7 @@ const OPS = {
         {key:"x2",label:"P₂ x",placeholder:G_X,default:G_X},
         {key:"y2",label:"P₂ y",placeholder:G_Y,default:G_Y},
       ]},
-    { id:"scalar_mul", label:"Scalar Multiply",    desc:"k × P — leave P blank for G",
+    { id:"scalar_mul", label:"Scalar Multiply",   desc:"k × P — leave P blank for G",
       method:"POST", path:"/api/ecc/scalar_mul",
       fields:[
         {key:"curve",label:"Curve",type:"select",options:CURVES},
@@ -116,7 +106,7 @@ const OPS = {
     { id:"mod_inverse",   label:"Modular Inverse",desc:"Inverse of a (mod m)",
       method:"POST", path:"/api/utils/mod_inverse",
       fields:[{key:"a",label:"a",placeholder:"3"},{key:"m",label:"Modulus m",placeholder:"11"}]},
-    { id:"xgcd",          label:"Extended GCD",   desc:"gcd(a,b) = a·x + b·y",
+    { id:"xgcd",          label:"Extended GCD",   desc:"gcd(a, b) = a·x + b·y",
       method:"POST", path:"/api/utils/xgcd",
       fields:[{key:"a",label:"a",placeholder:"35"},{key:"b",label:"b",placeholder:"15"}]},
   ],
@@ -139,212 +129,185 @@ const OPS = {
       method:"POST", path:"/api/crypto/dhke/derive_key",
       note:"Both parties run this with the same shared secret to get an identical AES key.",
       fields:[
-        {key:"secret",       label:"Shared secret",      placeholder:"(decimal from /shared_secret)"},
-        {key:"secret_group", label:"Group",               type:"select",options:GROUPS,default:"modp2048"},
-        {key:"length",       label:"Key length (bytes)",  placeholder:"32",default:"32",hint:"1 – 64"},
+        {key:"secret",       label:"Shared secret",     placeholder:"(decimal from /shared_secret)"},
+        {key:"secret_group", label:"Group",              type:"select",options:GROUPS,default:"modp2048"},
+        {key:"length",       label:"Key length (bytes)", placeholder:"32",default:"32",hint:"1 – 64"},
       ]},
   ],
 };
 
 const SECTIONS = {
-  field: { label:"Prime Field",    sub:"𝔽ₚ arithmetic",        icon:"𝔽" },
-  ecc:   { label:"Elliptic Curves",sub:"ECC operations",        icon:"𝔼" },
-  utils: { label:"Number Theory",  sub:"Primes & modular math", icon:"∂" },
-  dhke:  { label:"Diffie-Hellman", sub:"Key exchange",          icon:"⇄" },
+  field: { label:"Prime Field",    sub:"𝔽ₚ",     icon:"𝔽" },
+  ecc:   { label:"Elliptic Curves",sub:"ECC",    icon:"𝔼" },
+  utils: { label:"Number Theory",  sub:"ℕ",      icon:"∂" },
+  dhke:  { label:"Diffie-Hellman", sub:"DHKE",   icon:"⇄" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. HELPERS
+// 2. HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildRequestInputs(fields) {
-  return Object.fromEntries(
-    fields.map(f => [f.key, f.type === "select" ? (f.default ?? f.options[0]) : (f.default ?? "")])
-  );
-}
+const buildInputs = fields =>
+  Object.fromEntries(fields.map(f => [f.key, f.type === "select" ? (f.default ?? f.options[0]) : (f.default ?? "")]));
 
-function resolveUrl(baseUrl, op, inputs) {
+const resolveUrl = (base, op, inputs) => {
   const path = op.path.replace(/:(\w+)/g, (_, k) => encodeURIComponent(inputs[k] ?? ""));
-  return baseUrl.replace(/\/$/, "") + path;
-}
+  return base.replace(/\/$/, "") + path;
+};
 
-function buildBody(op, inputs) {
+const buildBody = (op, inputs) => {
   if (op.method === "GET") return null;
   const raw = {};
   op.fields.forEach(f => { const v = (inputs[f.key] ?? "").trim(); if (v) raw[f.key] = v; });
   return JSON.stringify(raw);
-}
+};
 
-function parseApiError(json) {
-  if (Array.isArray(json.detail))
-    return json.detail.map(e => `${e.loc?.slice(1).join(".")} — ${e.msg}`).join("\n");
-  return json.detail ?? JSON.stringify(json);
-}
+const parseApiError = json =>
+  Array.isArray(json.detail)
+    ? json.detail.map(e => `${e.loc?.slice(1).join(".")} — ${e.msg}`).join("\n")
+    : (json.detail ?? JSON.stringify(json));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. SMALL COMPONENTS
+// 3. COMPONENTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function MethodBadge({ method }) {
+function MethodPill({ method }) {
   const isGet = method === "GET";
   return (
     <span style={{
-      fontFamily:"'Geist Mono',monospace",
-      fontSize:"0.625rem", fontWeight:500, letterSpacing:"0.06em",
-      padding:"0.125rem 0.4rem", borderRadius:"0.25rem",
-      background: isGet ? C.greenDim  : C.accentDim,
-      color:      isGet ? C.green     : C.accentBright,
-      border:     `1px solid ${isGet ? C.green + "40" : C.accent + "40"}`,
-      whiteSpace: "nowrap",
+      fontFamily:"'Fragment Mono',monospace", fontSize:"0.6rem",
+      fontWeight:400, letterSpacing:"0.08em",
+      padding:"0.2rem 0.5rem", borderRadius:"0.2rem",
+      background: isGet ? C.greenLight : C.amberLight,
+      color:       isGet ? C.green     : C.amber,
+      border:      `1px solid ${isGet ? C.greenMid + "60" : C.amber + "40"}`,
+      whiteSpace:  "nowrap",
     }}>
       {method}
     </span>
   );
 }
 
-function Spinner({ color = "#fff" }) {
+function Spinner() {
   return (
     <span style={{
       display:"inline-block", width:"0.875rem", height:"0.875rem",
-      border:`0.125rem solid ${C.accent}40`, borderTopColor: color,
-      borderRadius:"50%", animation:"spin 0.65s linear infinite",
-    }} />
+      border:`1.5px solid ${C.borderMid}`, borderTopColor:C.green,
+      borderRadius:"50%", animation:"spin 0.7s linear infinite",
+      verticalAlign:"middle",
+    }}/>
   );
 }
 
-function JsonValue({ data, depth = 0 }) {
-  if (data === null)             return <span style={{color:C.textDim}}>null</span>;
-  if (typeof data === "boolean") return <span style={{color:data?C.green:C.red,fontWeight:500}}>{String(data)}</span>;
-  if (typeof data === "number")  return <span style={{color:C.orange}}>{data}</span>;
+function JsonTree({ data, depth = 0 }) {
+  if (data === null)             return <em style={{color:C.inkDim}}>null</em>;
+  if (typeof data === "boolean") return <strong style={{color:data ? C.green : C.red}}>{String(data)}</strong>;
+  if (typeof data === "number")  return <span style={{color:C.amber}}>{data}</span>;
 
   if (typeof data === "string") {
     const isHex = data.startsWith("0x");
     const isBig = /^\d{10,}$/.test(data);
     if (isHex || isBig) {
-      const color = isHex ? C.teal : C.orange;
-      if (data.length > 64) {
+      const color = isHex ? C.teal : C.amber;
+      if (data.length > 48) {
         return (
           <div style={{
             display:"block", width:"100%", boxSizing:"border-box",
             wordBreak:"break-all", overflowWrap:"anywhere",
-            color, fontSize:"0.7rem", lineHeight:1.7,
-            background:C.input, border:`1px solid ${C.border}`,
-            borderRadius:"0.375rem", padding:"0.375rem 0.625rem",
+            fontFamily:"'Fragment Mono',monospace",
+            fontSize:"0.72rem", lineHeight:1.65, color,
+            background:C.bgDeep, border:`1px solid ${C.border}`,
+            borderLeft:`3px solid ${color}`,
+            borderRadius:"0 0.3rem 0.3rem 0",
+            padding:"0.4rem 0.625rem",
             marginTop:"0.25rem", marginBottom:"0.125rem",
           }}>{data}</div>
         );
       }
-      return <span style={{color}}>{data}</span>;
+      return <span style={{color, fontFamily:"'Fragment Mono',monospace"}}>{data}</span>;
     }
-    return <span style={{color:C.green}}>"{data}"</span>;
+    return <span style={{color:C.green, fontFamily:"'Fragment Mono',monospace"}}>"{data}"</span>;
   }
 
   if (Array.isArray(data)) {
-    if (!data.length) return <span style={{color:C.textDim}}>[]</span>;
+    if (!data.length) return <span style={{color:C.inkDim}}>[ ]</span>;
     return (
       <div>
-        <span style={{color:C.textDim}}>{"["}</span>
-        {data.map((v,i) => (
-          <div key={i} style={{paddingLeft:"1.25rem"}}>
-            <JsonValue data={v} depth={depth+1}/>
-            {i < data.length-1 && <span style={{color:C.textDim}}>,</span>}
+        {data.map((v, i) => (
+          <div key={i} style={{paddingLeft: depth > 0 ? "1.25rem" : 0}}>
+            <span style={{color:C.inkDim, userSelect:"none"}}>— </span>
+            <JsonTree data={v} depth={depth+1}/>
           </div>
         ))}
-        <span style={{color:C.textDim}}>{"]"}</span>
       </div>
     );
   }
 
   if (typeof data === "object") {
     return (
-      <div>
-        {Object.entries(data).map(([k,v],i,arr) => (
-          <div key={k} style={{paddingLeft: depth===0 ? 0 : "1.25rem"}}>
-            <span style={{color:C.accentBright}}>{k}</span>
-            <span style={{color:C.textDim}}>: </span>
-            <JsonValue data={v} depth={depth+1}/>
-            {i < arr.length-1 && <span style={{color:C.textDim}}>,</span>}
+      <div style={{paddingLeft: depth > 0 ? "1rem" : 0}}>
+        {Object.entries(data).map(([k, v]) => (
+          <div key={k} style={{marginBottom:"0.2rem"}}>
+            <span style={{
+              fontFamily:"'Fragment Mono',monospace", fontSize:"0.72rem",
+              fontWeight:400, color:C.green, fontStyle:"italic",
+            }}>{k}</span>
+            <span style={{color:C.inkDim, margin:"0 0.25rem"}}>:</span>
+            <JsonTree data={v} depth={depth+1}/>
           </div>
         ))}
       </div>
     );
   }
 
-  return <span style={{color:C.text}}>{String(data)}</span>;
+  return <span style={{fontFamily:"'Fragment Mono',monospace", color:C.ink}}>{String(data)}</span>;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. FEATURE COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
+function FieldInput({ field, value, onChange }) {
+  return (
+    <div>
+      <label>{field.label}</label>
+      {field.type === "select"
+        ? <select value={value} onChange={e => onChange(field.key, e.target.value)}>
+            {field.options.map(o => <option key={o}>{o}</option>)}
+          </select>
+        : <input value={value} placeholder={field.placeholder}
+            onChange={e => onChange(field.key, e.target.value)}
+            spellCheck={false} autoComplete="off"
+          />
+      }
+      {field.hint && <p className="hint">{field.hint}</p>}
+    </div>
+  );
+}
 
 function Sidebar({ section, opId, onSection, onOp }) {
   return (
-    <nav style={{
-      padding:"1.25rem 0.75rem",
-      position:"sticky", top:"3.5rem",
-      height:"calc(100dvh - 3.5rem)",
-      overflowY:"auto",
-      display:"flex", flexDirection:"column", gap:"0.25rem",
-    }}>
+    <nav className="sidebar">
       {Object.entries(SECTIONS).map(([id, meta]) => {
-        const isActiveSection = section === id;
+        const active = section === id;
         return (
-          <div key={id}>
+          <div key={id} className="nav-group">
             <button
-              className="section-btn"
-              onClick={() => onSection(id)}
-              style={{
-                width:"100%", textAlign:"left",
-                padding:"0.5rem 0.625rem",
-                borderRadius:"0.5rem", border:"none",
-                background: isActiveSection ? C.accentGlow : "transparent",
-                cursor:"pointer", transition:"background 0.15s",
-                marginBottom:"0.125rem",
-              }}>
-              <span className="section-icon" style={{
-                fontSize:"1.125rem", display:"none",
-              }}>{meta.icon}</span>
-              <span className="section-label" style={{
-                fontFamily:"'Outfit',sans-serif", fontSize:"0.8125rem",
-                fontWeight: isActiveSection ? 600 : 500,
-                color: isActiveSection ? C.accentBright : C.textMid,
-                display:"block", marginBottom:"0.0625rem",
-              }}>{meta.label}</span>
-              <span className="section-sub" style={{
-                fontFamily:"'Geist Mono',monospace", fontSize:"0.625rem",
-                color:C.textDim, display:"block",
-              }}>{meta.sub}</span>
+              className={`nav-section ${active ? "active" : ""}`}
+              onClick={() => onSection(id)}>
+              <span className="nav-icon">{meta.icon}</span>
+              <span className="nav-text">
+                <span className="nav-label">{meta.label}</span>
+                <span className="nav-sub">{meta.sub}</span>
+              </span>
             </button>
-
-            {isActiveSection && OPS[id].map(op => {
-              const isActiveOp = opId === op.id;
-              return (
-                <button key={op.id}
-                  className="op-btn"
-                  onClick={() => onOp(op.id)}
-                  style={{
-                    width:"100%", textAlign:"left",
-                    padding:"0.375rem 0.625rem 0.375rem 1.375rem",
-                    borderRadius:"0.375rem", border:"none",
-                    background: isActiveOp ? C.input : "transparent",
-                    cursor:"pointer", display:"flex", alignItems:"center",
-                    gap:"0.5rem", transition:"background 0.1s",
-                    marginBottom:"0.0625rem",
-                  }}>
-                  <span className="op-bar" style={{
-                    width:"0.125rem", height:"0.75rem", borderRadius:"0.0625rem",
-                    flexShrink:0,
-                    background: isActiveOp ? C.accent : "transparent",
-                    transition:"background 0.1s",
-                  }}/>
-                  <span className="op-label" style={{
-                    fontFamily:"'Outfit',sans-serif", fontSize:"0.78rem",
-                    fontWeight: isActiveOp ? 500 : 400,
-                    color: isActiveOp ? C.text : C.textMid,
-                  }}>{op.label}</span>
-                </button>
-              );
-            })}
+            {active && (
+              <div className="nav-ops">
+                {OPS[id].map(op => (
+                  <button key={op.id}
+                    className={`nav-op ${opId === op.id ? "active" : ""}`}
+                    onClick={() => onOp(op.id)}>
+                    {op.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         );
       })}
@@ -352,147 +315,36 @@ function Sidebar({ section, opId, onSection, onOp }) {
   );
 }
 
-function FieldInput({ field, value, onChange }) {
-  const { key, label, type, options, placeholder, hint } = field;
+function OutputPanel({ result, error, loading, op, ref: resultRef }) {
+  const hasContent = loading || error || result !== null;
   return (
-    <div>
-      <label>{label}</label>
-      {type === "select"
-        ? <select value={value} onChange={e => onChange(key, e.target.value)}>
-            {options.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-        : <input value={value} placeholder={placeholder}
-            onChange={e => onChange(key, e.target.value)}
-            spellCheck={false} autoComplete="off"
-          />
-      }
-      {hint && (
-        <div style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.65rem",color:C.textDim,marginTop:"0.3rem"}}>
-          {hint}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OpForm({ op, inputs, onChange, onSubmit, loading }) {
-  return (
-    <div style={{
-      background:C.panel, border:`1px solid ${C.border}`,
-      borderRadius:"0.75rem", padding:"1.25rem", marginBottom:"1rem",
-    }}>
-      {op.fields.length > 0 ? (
-        <div className="form-grid" style={{
-          display:"grid",
-          gridTemplateColumns:"repeat(auto-fill, minmax(15rem, 1fr))",
-          gap:"1rem", marginBottom:"1.25rem",
-        }}>
-          {op.fields.map(f => (
-            <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={onChange}/>
-          ))}
-        </div>
-      ) : (
-        <p style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.8rem",color:C.textDim,marginBottom:"1rem"}}>
-          No parameters — just send the request.
-        </p>
-      )}
-      <div style={{display:"flex",alignItems:"center",gap:"0.75rem"}}>
-        <button
-          onClick={onSubmit} disabled={loading}
-          style={{
-            height:"2.25rem", padding:"0 1.375rem",
-            background: loading ? C.accentDim : C.accent,
-            color:"#fff", fontFamily:"'Outfit',sans-serif",
-            fontWeight:600, fontSize:"0.875rem",
-            borderRadius:"0.5rem", border:"none",
-            display:"flex", alignItems:"center", gap:"0.5rem",
-            cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: loading ? "none" : `0 0 1rem ${C.accent}40`,
-            transition:"background 0.15s, box-shadow 0.15s",
-          }}>
-          {loading ? <><Spinner/>Running…</> : "Run"}
-        </button>
-        <span style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.7rem",color:C.textDim}}>⌃ Enter</span>
-      </div>
-    </div>
-  );
-}
-
-function OutputPanel({ result, error, loading, op, resultRef }) {
-  const dotColor = error ? C.red : result !== null ? C.green : C.borderMid;
-  const dotGlow  = error ? C.red : result !== null ? C.green : "none";
-  const statusLabel = loading ? "Running…" : error ? "Error" : result !== null ? "Response" : "Output";
-
-  return (
-    <div className="out-panel" style={{
-      background:C.panel, border:`1px solid ${C.border}`,
-      borderRadius:"0.75rem", marginBottom:"1rem",
-      height:"30rem", display:"flex", flexDirection:"column", overflow:"hidden",
-    }}>
-      {/* Header */}
-      <div style={{
-        padding:"0.625rem 1rem",
-        borderBottom:`1px solid ${C.border}`,
-        background:C.input,
-        display:"flex", alignItems:"center", gap:"0.625rem",
-        flexShrink:0,
-      }}>
-        <span style={{
-          width:"0.4375rem", height:"0.4375rem", borderRadius:"50%", flexShrink:0,
-          background:dotColor,
-          boxShadow: dotGlow !== "none" ? `0 0 0.5rem ${dotGlow}` : "none",
-          transition:"background 0.2s",
-        }}/>
-        <span style={{
-          fontFamily:"'Geist Mono',monospace", fontSize:"0.6875rem",
-          fontWeight:500, color:C.textMid,
-          letterSpacing:"0.08em", textTransform:"uppercase",
-        }}>
-          {statusLabel}
+    <div className="output-card">
+      <div className="output-header">
+        <span className={`output-dot ${error ? "error" : result ? "ok" : ""}`}/>
+        <span className="output-label">
+          {loading ? "Computing…" : error ? "Error" : result !== null ? "Result" : "Output"}
         </span>
-        {result !== null && !error && (
-          <span style={{
-            marginLeft:"auto", fontFamily:"'Geist Mono',monospace",
-            fontSize:"0.6875rem", color:C.textDim,
-          }}>
-            200 OK · {op.method} {op.path}
-          </span>
+        {result && !error && (
+          <span className="output-meta">{op.method} {op.path}</span>
         )}
       </div>
-
-      {/* Body */}
-      <div ref={resultRef} style={{
-        flex:1, minHeight:0,
-        overflowY:"auto", overflowX:"hidden",
-        padding:"1.125rem 1.25rem",
-        fontFamily:"'Geist Mono',monospace",
-        fontSize:"0.78rem", lineHeight:1.9,
-      }}>
+      <div className="output-body" ref={resultRef}>
         {loading && (
-          <div style={{
-            display:"flex", alignItems:"center", justifyContent:"center",
-            height:"100%", gap:"0.625rem", color:C.textDim,
-          }}>
-            <Spinner color={C.accent}/> Computing…
+          <div className="output-empty">
+            <Spinner/>
+            <span style={{marginLeft:"0.5rem", color:C.inkMid}}>Running request…</span>
           </div>
         )}
         {!loading && error && (
-          <pre style={{
-            fontFamily:"'Geist Mono',monospace", fontSize:"0.75rem",
-            color:C.red, whiteSpace:"pre-wrap", margin:0,
-          }}>{error}</pre>
+          <pre className="error-text">{error}</pre>
         )}
-        {!loading && !error && result !== null && <JsonValue data={result}/>}
+        {!loading && !error && result !== null && (
+          <JsonTree data={result}/>
+        )}
         {!loading && !error && result === null && (
-          <div style={{
-            display:"flex", flexDirection:"column",
-            alignItems:"center", justifyContent:"center",
-            height:"100%", gap:"0.625rem", color:C.textDim,
-          }}>
-            <div style={{fontSize:"1.75rem"}}>λ</div>
-            <div style={{fontFamily:"'Outfit',sans-serif",fontSize:"0.8125rem"}}>
-              Run a request to see output
-            </div>
+          <div className="output-empty">
+            <div className="output-glyph">∅</div>
+            <p>Run a request to see the result</p>
           </div>
         )}
       </div>
@@ -500,46 +352,11 @@ function OutputPanel({ result, error, loading, op, resultRef }) {
   );
 }
 
-function HistoryPanel({ history, onSelect }) {
-  return (
-    <div style={{
-      background:C.panel, border:`1px solid ${C.border}`,
-      borderRadius:"0.75rem", overflow:"hidden",
-    }}>
-      <div style={{
-        padding:"0.625rem 1rem",
-        borderBottom:`1px solid ${C.border}`,
-        background:C.input,
-        fontFamily:"'Geist Mono',monospace", fontSize:"0.65rem",
-        fontWeight:500, color:C.textDim,
-        letterSpacing:"0.1em", textTransform:"uppercase",
-      }}>History</div>
-      {history.map((h,i) => (
-        <div key={i}
-          onClick={() => onSelect(h.result)}
-          style={{
-            display:"flex", alignItems:"center", gap:"0.625rem",
-            padding:"0.625rem 1rem",
-            borderBottom: i<history.length-1 ? `1px solid ${C.border}` : "none",
-            cursor:"pointer", transition:"background 0.1s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = C.panelHover}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-        >
-          <MethodBadge method={h.method}/>
-          <span style={{fontFamily:"'Outfit',sans-serif",fontSize:"0.8125rem",fontWeight:500,color:C.text,flex:1}}>{h.label}</span>
-          <span style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.6875rem",color:C.textDim}}>{h.ts}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. ROOT
+// 4. ROOT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function CryptoExplorer() {
+export default function GaloisExplorer() {
   const [baseUrl,    setBaseUrl]    = useState(import.meta?.env?.VITE_API_URL ?? "http://localhost:8000");
   const [editingUrl, setEditingUrl] = useState(false);
   const [section,    setSection]    = useState("field");
@@ -555,7 +372,7 @@ export default function CryptoExplorer() {
   const op  = ops.find(o => o.id === opId) ?? ops[0];
 
   useEffect(() => {
-    setInputs(buildRequestInputs(op?.fields ?? []));
+    setInputs(buildInputs(op?.fields ?? []));
     setResult(null); setError(null);
   }, [opId, section]);
 
@@ -572,18 +389,16 @@ export default function CryptoExplorer() {
       const json = await res.json();
       if (!res.ok) throw new Error(parseApiError(json));
       setResult(json);
-      setHistory(h => [{label:op.label,method:op.method,result:json,ts:new Date().toLocaleTimeString()}, ...h.slice(0,7)]);
-      setTimeout(() => resultRef.current?.scrollIntoView({behavior:"smooth",block:"nearest"}), 50);
+      setHistory(h => [{label:op.label,method:op.method,result:json,ts:new Date().toLocaleTimeString()},...h.slice(0,7)]);
+      setTimeout(() => resultRef.current?.scrollIntoView({behavior:"smooth",block:"nearest"}), 60);
     } catch(e) {
       setError(e.message.includes("fetch")
-        ? `Could not connect to ${baseUrl}\n\nMake sure the server is running:\nuvicorn main:app --reload`
+        ? `Cannot reach ${baseUrl}\n\nStart the server:\nuvicorn main:app --reload`
         : e.message);
     } finally { setLoading(false); }
   }, [baseUrl, op, inputs]);
 
-  const handleFieldChange = useCallback((key, value) => {
-    setInputs(prev => ({...prev, [key]: value}));
-  }, []);
+  const handleChange = useCallback((key, val) => setInputs(p => ({...p,[key]:val})), []);
 
   useEffect(() => {
     const h = e => { if ((e.ctrlKey||e.metaKey) && e.key==="Enter") call(); };
@@ -592,223 +407,517 @@ export default function CryptoExplorer() {
   }, [call]);
 
   return (
-    <div style={{minHeight:"100dvh", display:"flex", flexDirection:"column", color:C.text}}>
+    <>
       <style>{`
-        @import url('${FONTS_URL}');
+        @import url('${FONTS}');
+
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         html { font-size:16px; }
         html, body, #root {
           min-height:100dvh;
           background:${C.bg};
+          color:${C.ink};
           scrollbar-gutter:stable;
         }
         body {
-          overflow-x:hidden;
-          color:${C.text};
-          font-family:'Outfit',sans-serif;
-          line-height:1.5;
+          font-family:'DM Sans', sans-serif;
+          line-height:1.55;
           -webkit-font-smoothing:antialiased;
+          overflow-x:hidden;
         }
-        ::-webkit-scrollbar { width:0.3125rem; height:0.3125rem; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width:0.3rem; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:${C.borderMid}; border-radius:99rem; }
+
+        /* ── Form elements ── */
+        label {
+          display:block;
+          font-family:'DM Sans', sans-serif;
+          font-size:0.6875rem; font-weight:600;
+          letter-spacing:0.07em; text-transform:uppercase;
+          color:${C.inkMid}; margin-bottom:0.35rem;
+        }
         input, select {
-          font-family:'Geist Mono','JetBrains Mono',monospace;
-          font-size:0.78rem;
-          background:${C.input}; border:1px solid ${C.border};
-          color:${C.text}; border-radius:0.5rem;
-          padding:0.5625rem 0.75rem; width:100%;
+          width:100%; display:block;
+          font-family:'Fragment Mono', monospace;
+          font-size:0.8rem;
+          background:${C.surface}; color:${C.ink};
+          border:1.5px solid ${C.border};
+          border-radius:0.375rem;
+          padding:0.55rem 0.75rem;
           outline:none; appearance:none;
           transition:border-color 0.15s, box-shadow 0.15s;
         }
         input:focus, select:focus {
-          border-color:${C.accent};
-          box-shadow:0 0 0 0.1875rem ${C.accentGlow};
+          border-color:${C.green};
+          box-shadow:0 0 0 3px ${C.greenLight};
         }
-        input::placeholder { color:${C.textDim}; }
+        input::placeholder { color:${C.inkDim}; font-style:italic; }
         select {
-          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A5568' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+          cursor:pointer;
+          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${C.inkDim.slice(1)}' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
           background-repeat:no-repeat;
           background-position:right 0.75rem center;
-          padding-right:2rem; cursor:pointer;
+          padding-right:2.25rem;
         }
-        label {
-          font-family:'Outfit',sans-serif;
-          font-size:0.6875rem; font-weight:600;
-          letter-spacing:0.06em; text-transform:uppercase;
-          color:${C.textDim}; margin-bottom:0.375rem; display:block;
+        .hint {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.65rem; color:${C.inkDim};
+          margin-top:0.3rem; font-style:italic;
         }
-        button { cursor:pointer; border:none; }
-
-        @keyframes fadeUp { from{opacity:0;transform:translateY(0.375rem)} to{opacity:1;transform:translateY(0)} }
-        @keyframes spin   { to{transform:rotate(360deg)} }
-        .fade-up { animation:fadeUp 0.18s ease both; }
+        button { cursor:pointer; border:none; background:none; }
 
         /* ── Layout ── */
-        .layout-body   { display:flex; flex:1; }
-        .sidebar-col   {
-          width:14.5rem; flex-shrink:0;
-          background:${C.panel}; border-right:1px solid ${C.border};
-          align-self:stretch;
+        .app-shell {
+          display:grid;
+          grid-template-rows:3.5rem 1fr;
+          grid-template-columns:1fr;
+          min-height:100dvh;
         }
-        .main-area     { flex:1; min-width:0; background:${C.bg}; }
-        .main-pad      { width:100%; box-sizing:border-box; }
-        .main-pad > *  { width:100%; box-sizing:border-box; }
-        .main-pad      { padding:2rem 2.25rem; }
-        .mobile-tabs   { display:none; }
+        .topbar {
+          grid-row:1;
+          background:${C.surface};
+          border-bottom:1px solid ${C.border};
+          display:flex; align-items:center;
+          padding:0 1.5rem; gap:1rem;
+          position:sticky; top:0; z-index:100;
+        }
+        .body-grid {
+          grid-row:2;
+          display:grid;
+          grid-template-columns:13.5rem 1fr;
+          align-items:start;
+        }
 
-        /* ── Tablet ≤56rem (896px) ── */
+        /* ── Sidebar ── */
+        .sidebar {
+          grid-column:1;
+          background:${C.surface};
+          border-right:1px solid ${C.border};
+          padding:1.25rem 0.875rem;
+          position:sticky; top:3.5rem;
+          height:calc(100dvh - 3.5rem);
+          overflow-y:auto;
+          display:flex; flex-direction:column; gap:0.125rem;
+        }
+        .nav-group { margin-bottom:0.25rem; }
+        .nav-section {
+          width:100%; text-align:left;
+          display:flex; align-items:center; gap:0.625rem;
+          padding:0.5rem 0.625rem; border-radius:0.5rem;
+          transition:background 0.12s;
+          font-family:'DM Sans', sans-serif;
+        }
+        .nav-section:hover { background:${C.bgDeep}; }
+        .nav-section.active { background:${C.greenLight}; }
+        .nav-icon {
+          font-size:1rem; width:1.5rem; text-align:center;
+          color:${C.inkMid}; flex-shrink:0;
+        }
+        .nav-section.active .nav-icon { color:${C.green}; }
+        .nav-text { display:flex; flex-direction:column; gap:0.0625rem; }
+        .nav-label {
+          font-size:0.8125rem; font-weight:600;
+          color:${C.ink}; line-height:1.2;
+        }
+        .nav-section.active .nav-label { color:${C.greenDim}; }
+        .nav-sub {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.6rem; color:${C.inkDim};
+        }
+        .nav-ops { padding:0.25rem 0 0.25rem 2.125rem; display:flex; flex-direction:column; gap:0.0625rem; }
+        .nav-op {
+          width:100%; text-align:left;
+          font-family:'DM Sans', sans-serif;
+          font-size:0.78rem; font-weight:400; color:${C.inkMid};
+          padding:0.3125rem 0.5rem; border-radius:0.3rem;
+          transition:all 0.1s; position:relative;
+        }
+        .nav-op:hover { color:${C.ink}; background:${C.bgDeep}; }
+        .nav-op.active {
+          color:${C.green}; font-weight:500;
+          background:${C.greenLight};
+        }
+        .nav-op.active::before {
+          content:""; position:absolute; left:0; top:20%; bottom:20%;
+          width:2px; background:${C.green}; border-radius:99px;
+        }
+
+        /* ── Main content ── */
+        .main {
+          grid-column:2;
+          padding:2.25rem 2.5rem 4rem;
+          min-width:0;
+        }
+
+        /* ── Op header ── */
+        .op-header {
+          margin-bottom:1.75rem;
+          padding-bottom:1.5rem;
+          border-bottom:1px solid ${C.border};
+        }
+        .op-tag-row {
+          display:flex; align-items:center; gap:0.5rem;
+          margin-bottom:0.75rem;
+        }
+        .op-path {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.75rem; color:${C.inkMid};
+          background:${C.bgDeep};
+          border:1px solid ${C.border};
+          padding:0.2rem 0.625rem; border-radius:0.25rem;
+        }
+        .op-title {
+          font-family:'Fraunces', serif;
+          font-weight:600; font-size:2rem;
+          letter-spacing:-0.02em; color:${C.ink};
+          margin-bottom:0.375rem; line-height:1.15;
+        }
+        .op-desc {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.8rem; color:${C.inkMid};
+        }
+
+        /* ── Note banner ── */
+        .note-banner {
+          background:${C.blueLight};
+          border:1px solid ${C.blue}30;
+          border-left:3px solid ${C.blue};
+          border-radius:0 0.5rem 0.5rem 0;
+          padding:0.625rem 0.875rem;
+          font-family:'Fragment Mono', monospace;
+          font-size:0.75rem; color:${C.blue};
+          margin-bottom:1.25rem; line-height:1.6;
+        }
+
+        /* ── Form card ── */
+        .form-card {
+          background:${C.surface};
+          border:1px solid ${C.border};
+          border-radius:0.625rem;
+          padding:1.375rem;
+          margin-bottom:1.25rem;
+          box-shadow:0 1px 3px rgba(0,0,0,0.04);
+        }
+        .form-grid {
+          display:grid;
+          grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr));
+          gap:1rem;
+          margin-bottom:1.25rem;
+        }
+        .run-row { display:flex; align-items:center; gap:0.875rem; }
+        .run-btn {
+          height:2.25rem; padding:0 1.375rem;
+          background:${C.green}; color:#fff;
+          font-family:'DM Sans', sans-serif;
+          font-weight:600; font-size:0.875rem;
+          border-radius:0.4rem;
+          display:flex; align-items:center; gap:0.5rem;
+          transition:background 0.15s, box-shadow 0.15s;
+          box-shadow:0 1px 4px ${C.green}40;
+        }
+        .run-btn:hover { background:${C.greenDim}; }
+        .run-btn:disabled { background:${C.greenMid}; box-shadow:none; cursor:not-allowed; }
+        .shortcut {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.7rem; color:${C.inkDim};
+        }
+
+        /* ── Output card ── */
+        .output-card {
+          background:${C.surface};
+          border:1px solid ${C.border};
+          border-radius:0.625rem;
+          margin-bottom:1.25rem;
+          overflow:hidden;
+          box-shadow:0 1px 3px rgba(0,0,0,0.04);
+          display:flex; flex-direction:column;
+          height:30rem;
+        }
+        .output-header {
+          padding:0.625rem 1rem;
+          background:${C.bgDeep};
+          border-bottom:1px solid ${C.border};
+          display:flex; align-items:center; gap:0.5rem;
+          flex-shrink:0;
+        }
+        .output-dot {
+          width:0.5rem; height:0.5rem; border-radius:50%; flex-shrink:0;
+          background:${C.borderMid}; transition:background 0.2s;
+        }
+        .output-dot.ok    { background:${C.green}; box-shadow:0 0 0.375rem ${C.green}80; }
+        .output-dot.error { background:${C.red};   box-shadow:0 0 0.375rem ${C.red}80; }
+        .output-label {
+          font-family:'DM Sans', sans-serif;
+          font-size:0.7rem; font-weight:600;
+          letter-spacing:0.07em; text-transform:uppercase; color:${C.inkMid};
+        }
+        .output-meta {
+          margin-left:auto;
+          font-family:'Fragment Mono', monospace;
+          font-size:0.65rem; color:${C.inkDim};
+        }
+        .output-body {
+          flex:1; min-height:0;
+          overflow-y:auto; overflow-x:hidden;
+          padding:1.125rem 1.25rem;
+          font-family:'Fragment Mono', monospace;
+          font-size:0.78rem; line-height:1.85;
+        }
+        .output-empty {
+          display:flex; flex-direction:column;
+          align-items:center; justify-content:center;
+          height:100%; gap:0.75rem;
+          color:${C.inkDim}; font-family:'DM Sans', sans-serif;
+          font-size:0.875rem;
+        }
+        .output-glyph {
+          font-family:'Fraunces', serif;
+          font-size:2.5rem; color:${C.border};
+          line-height:1;
+        }
+        .error-text {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.75rem; color:${C.red};
+          white-space:pre-wrap; margin:0; line-height:1.7;
+        }
+
+        /* ── History ── */
+        .history-card {
+          background:${C.surface};
+          border:1px solid ${C.border};
+          border-radius:0.625rem; overflow:hidden;
+          box-shadow:0 1px 3px rgba(0,0,0,0.04);
+        }
+        .history-head {
+          padding:0.5rem 1rem;
+          background:${C.bgDeep};
+          border-bottom:1px solid ${C.border};
+          font-family:'DM Sans', sans-serif;
+          font-size:0.6875rem; font-weight:600;
+          letter-spacing:0.07em; text-transform:uppercase; color:${C.inkDim};
+        }
+        .history-row {
+          display:flex; align-items:center; gap:0.625rem;
+          padding:0.625rem 1rem; cursor:pointer;
+          transition:background 0.1s;
+          border-bottom:1px solid ${C.border};
+        }
+        .history-row:last-child { border-bottom:none; }
+        .history-row:hover { background:${C.bgDeep}; }
+        .history-name {
+          font-family:'DM Sans', sans-serif;
+          font-size:0.8125rem; font-weight:500; color:${C.ink}; flex:1;
+        }
+        .history-time {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.675rem; color:${C.inkDim};
+        }
+
+        /* ── Topbar ── */
+        .wordmark {
+          font-family:'Fraunces', serif;
+          font-size:1.125rem; font-weight:600;
+          color:${C.ink}; letter-spacing:-0.02em;
+          display:flex; align-items:baseline; gap:0.25rem;
+        }
+        .wordmark-sub {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.6rem; font-weight:400;
+          color:${C.green}; letter-spacing:0.05em;
+          border:1px solid ${C.greenMid};
+          padding:0.1rem 0.35rem; border-radius:0.2rem;
+          margin-left:0.25rem;
+        }
+        .url-pill {
+          flex:1; max-width:22rem; height:2rem;
+          background:${C.bgDeep}; border:1px solid ${C.border};
+          border-radius:0.375rem;
+          display:flex; align-items:center; gap:0.5rem;
+          padding:0 0.75rem; cursor:text;
+        }
+        .url-dot {
+          width:0.375rem; height:0.375rem; border-radius:50%;
+          background:${C.green}; flex-shrink:0;
+          box-shadow:0 0 0.25rem ${C.green};
+        }
+        .url-text {
+          font-family:'Fragment Mono', monospace;
+          font-size:0.72rem; color:${C.inkMid};
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        }
+        .docs-link {
+          margin-left:auto;
+          font-family:'Fragment Mono', monospace;
+          font-size:0.72rem; color:${C.inkMid};
+          text-decoration:none; padding:0.25rem 0.625rem;
+          border:1px solid ${C.border}; border-radius:0.3rem;
+          transition:border-color 0.15s, color 0.15s;
+        }
+        .docs-link:hover { color:${C.ink}; border-color:${C.borderMid}; }
+
+        /* ── Mobile bottom tabs ── */
+        .mobile-tabs { display:none; }
+
+        /* ── Animations ── */
+        @keyframes spin    { to { transform:rotate(360deg); } }
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(0.4rem); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation:fadeUp 0.2s ease both; }
+
+        /* ── Responsive ── */
         @media (max-width:56rem) {
-          .sidebar-col { width:3.25rem; }
-          .section-label, .section-sub, .op-label { display:none !important; }
-          .section-icon { display:block !important; }
-          .section-btn  { justify-content:center !important; padding:0.625rem 0 !important; }
-          .op-btn       { justify-content:center !important; padding:0.5rem 0 !important; }
-          .op-bar       { display:none !important; }
-          .topbar-url   { max-width:12rem !important; }
+          .sidebar   { width:3rem; padding:1rem 0.5rem; }
+          .nav-icon  { width:100%; font-size:1.125rem; }
+          .nav-text, .nav-ops { display:none; }
+          .nav-section { justify-content:center; }
+          .main      { padding:1.5rem 1.75rem 3rem; }
         }
-
-        /* ── Mobile ≤37.5rem (600px) ── */
         @media (max-width:37.5rem) {
-          .sidebar-col  { display:none !important; }
-          .mobile-tabs  { display:flex !important; }
-          .docs-link    { display:none !important; }
-          .topbar-url   { max-width:10rem !important; }
-          .main-pad     { padding:1rem 1rem 5rem; }
-          .form-grid    { grid-template-columns:1fr !important; }
-          .out-panel    { height:22rem !important; }
+          .body-grid { grid-template-columns:1fr; }
+          .sidebar   { display:none; }
+          .mobile-tabs {
+            display:flex; position:fixed;
+            bottom:0; left:0; right:0;
+            background:${C.surface}; border-top:1px solid ${C.border};
+            z-index:200; height:3.5rem;
+          }
+          .mobile-tab {
+            flex:1; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:0.125rem;
+            font-family:'DM Sans', sans-serif;
+            font-size:0.5rem; font-weight:600;
+            letter-spacing:0.04em; text-transform:uppercase;
+            color:${C.inkDim}; cursor:pointer;
+            border-top:2px solid transparent;
+            transition:all 0.15s;
+          }
+          .mobile-tab.active { color:${C.green}; border-top-color:${C.green}; background:${C.greenLight}; }
+          .mobile-tab-icon   { font-size:1.25rem; }
+          .main  { padding:1.25rem 1rem 5rem; }
+          .docs-link { display:none; }
+          .form-grid { grid-template-columns:1fr; }
+          .output-card { height:22rem; }
+          .op-title  { font-size:1.5rem; }
         }
       `}</style>
 
-      {/* ── Topbar ── */}
-      <header style={{
-        height:"3.5rem", background:C.panel,
-        borderBottom:`1px solid ${C.border}`,
-        display:"flex", alignItems:"center",
-        padding:"0 1.25rem", gap:"1rem",
-        position:"sticky", top:0, zIndex:100, flexShrink:0,
-      }}>
-        <div style={{
-          fontFamily:"'Outfit',sans-serif", fontWeight:700,
-          fontSize:"1rem", color:C.text,
-          display:"flex", alignItems:"center", gap:"0.5rem", whiteSpace:"nowrap",
-        }}>
-          crypto
-          <span style={{
-            fontFamily:"'Geist Mono',monospace",
-            background:C.accentDim, color:C.accentBright,
-            fontSize:"0.625rem", fontWeight:500,
-            padding:"0.125rem 0.5rem", borderRadius:"99rem",
-            border:`1px solid ${C.accent}40`, letterSpacing:"0.06em",
-          }}>API</span>
-        </div>
-
-        {editingUrl ? (
-          <input autoFocus defaultValue={baseUrl}
-            style={{flex:1, maxWidth:"23.75rem", height:"2.125rem", fontSize:"0.75rem", padding:"0 0.75rem"}}
-            onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
-            onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
-          />
-        ) : (
-          <div className="topbar-url" onClick={() => setEditingUrl(true)} title="Click to edit"
-            style={{
-              flex:1, maxWidth:"23.75rem", height:"2.125rem",
-              background:C.input, border:`1px solid ${C.border}`,
-              borderRadius:"0.5rem", display:"flex", alignItems:"center",
-              gap:"0.5rem", padding:"0 0.75rem", cursor:"text",
-            }}>
-            <span style={{width:"0.375rem",height:"0.375rem",borderRadius:"50%",background:C.green,flexShrink:0,boxShadow:`0 0 0.375rem ${C.green}`}}/>
-            <span style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.75rem",color:C.textMid,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-              {baseUrl}
-            </span>
+      <div className="app-shell">
+        {/* ── Topbar ── */}
+        <header className="topbar">
+          <div className="wordmark">
+            𝔾 explorer
+            <span className="wordmark-sub">API</span>
           </div>
-        )}
 
-        <a href={`${baseUrl}/docs`} target="_blank" rel="noreferrer" className="docs-link"
-          style={{
-            marginLeft:"auto", fontFamily:"'Geist Mono',monospace",
-            fontSize:"0.75rem", color:C.textMid,
-            textDecoration:"none", padding:"0.25rem 0.625rem",
-            borderRadius:"0.375rem", border:`1px solid ${C.border}`,
-          }}>
-          /docs ↗
-        </a>
-      </header>
-
-      {/* ── Body ── */}
-      <div className="layout-body">
-        <div className="sidebar-col">
-          <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
-        </div>
-
-        <div className="main-area">
-          <div className="main-pad">
-
-            {/* Op title */}
-            <div style={{marginBottom:"1.5rem",paddingBottom:"1.25rem",borderBottom:`1px solid ${C.border}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:"0.625rem",marginBottom:"0.625rem"}}>
-                <MethodBadge method={op.method}/>
-                <code style={{
-                  fontFamily:"'Geist Mono',monospace", fontSize:"0.78rem",
-                  color:C.textDim, background:C.input,
-                  padding:"0.125rem 0.5rem", borderRadius:"0.3125rem",
-                  border:`1px solid ${C.border}`,
-                }}>{op.path}</code>
+          {editingUrl
+            ? <input autoFocus defaultValue={baseUrl}
+                style={{flex:1,maxWidth:"22rem",height:"2rem",fontSize:"0.75rem",padding:"0 0.75rem"}}
+                onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
+                onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
+              />
+            : <div className="url-pill" onClick={() => setEditingUrl(true)} title="Click to edit">
+                <span className="url-dot"/>
+                <span className="url-text">{baseUrl}</span>
               </div>
-              <h1 style={{fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:"1.625rem",letterSpacing:"-0.03em",color:C.text,marginBottom:"0.375rem"}}>
-                {op.label}
-              </h1>
-              <p style={{fontFamily:"'Geist Mono',monospace",fontSize:"0.84rem",color:C.textMid}}>
-                {op.desc}
-              </p>
+          }
+
+          <a className="docs-link" href={`${baseUrl}/docs`} target="_blank" rel="noreferrer">
+            /docs ↗
+          </a>
+        </header>
+
+        {/* ── Body ── */}
+        <div className="body-grid">
+          <div className="sidebar">
+            <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
+          </div>
+
+          <main className="main">
+            {/* Op header */}
+            <div className="op-header">
+              <div className="op-tag-row">
+                <MethodPill method={op.method}/>
+                <code className="op-path">{op.path}</code>
+              </div>
+              <h1 className="op-title">{op.label}</h1>
+              <p className="op-desc">{op.desc}</p>
             </div>
 
-            {op.note && (
-              <div style={{
-                background:C.accentDim, border:`1px solid ${C.accent}40`,
-                borderLeft:`0.1875rem solid ${C.accent}`,
-                borderRadius:"0 0.5rem 0.5rem 0",
-                padding:"0.625rem 0.875rem",
-                fontFamily:"'Geist Mono',monospace", fontSize:"0.78rem",
-                color:C.accentBright, marginBottom:"1.25rem",
-              }}>{op.note}</div>
+            {op.note && <div className="note-banner">{op.note}</div>}
+
+            {/* Form */}
+            <div className="form-card">
+              {op.fields.length > 0
+                ? <div className="form-grid">
+                    {op.fields.map(f => (
+                      <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={handleChange}/>
+                    ))}
+                  </div>
+                : <p className="hint" style={{marginBottom:"1rem"}}>No parameters — just send the request.</p>
+              }
+              <div className="run-row">
+                <button className="run-btn" onClick={call} disabled={loading}>
+                  {loading ? <><Spinner/> Running…</> : "Run"}
+                </button>
+                <span className="shortcut">⌃ Enter</span>
+              </div>
+            </div>
+
+            {/* Output */}
+            <div className={`output-card ${result || error ? "fade-up" : ""}`}>
+              <div className="output-header">
+                <span className={`output-dot ${error?"error":result?"ok":""}`}/>
+                <span className="output-label">
+                  {loading?"Computing…":error?"Error":result?"Result":"Output"}
+                </span>
+                {result && !error && <span className="output-meta">{op.method} {op.path}</span>}
+              </div>
+              <div className="output-body" ref={resultRef}>
+                {loading && (
+                  <div className="output-empty">
+                    <Spinner/><span style={{marginLeft:"0.5rem"}}>Running…</span>
+                  </div>
+                )}
+                {!loading && error && <pre className="error-text">{error}</pre>}
+                {!loading && !error && result !== null && <JsonTree data={result}/>}
+                {!loading && !error && result === null && (
+                  <div className="output-empty">
+                    <div className="output-glyph">∅</div>
+                    <p>Run a request to see the result</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* History */}
+            {history.length > 0 && (
+              <div className="history-card">
+                <div className="history-head">History</div>
+                {history.map((h,i) => (
+                  <div key={i} className="history-row" onClick={() => setResult(h.result)}>
+                    <MethodPill method={h.method}/>
+                    <span className="history-name">{h.label}</span>
+                    <span className="history-time">{h.ts}</span>
+                  </div>
+                ))}
+              </div>
             )}
-
-            <OpForm op={op} inputs={inputs} onChange={handleFieldChange} onSubmit={call} loading={loading}/>
-
-            <OutputPanel result={result} error={error} loading={loading} op={op} resultRef={resultRef}/>
-
-            {history.length > 0 && <HistoryPanel history={history} onSelect={setResult}/>}
-          </div>
+          </main>
         </div>
-      </div>
 
-      {/* ── Mobile bottom tabs ── */}
-      <nav className="mobile-tabs" style={{
-        position:"fixed", bottom:0, left:0, right:0,
-        height:"3.5rem", background:C.panel,
-        borderTop:`1px solid ${C.border}`,
-        display:"none", alignItems:"stretch", zIndex:200,
-      }}>
-        {Object.entries(SECTIONS).map(([id, meta]) => (
-          <button key={id}
-            onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}
-            style={{
-              flex:1, display:"flex", flexDirection:"column",
-              alignItems:"center", justifyContent:"center", gap:"0.1875rem",
-              background: section===id ? C.accentDim : "transparent",
-              border:"none", cursor:"pointer",
-              borderTop: section===id ? `0.125rem solid ${C.accent}` : "0.125rem solid transparent",
-              color: section===id ? C.accentBright : C.textDim,
-              fontSize:"0.5rem", fontFamily:"'Outfit',sans-serif",
-              fontWeight:600, letterSpacing:"0.05em", textTransform:"uppercase",
-              transition:"all 0.15s",
-            }}>
-            <span style={{fontSize:"1.25rem"}}>{meta.icon}</span>
-            {meta.label}
-          </button>
-        ))}
-      </nav>
-    </div>
+        {/* ── Mobile bottom tabs ── */}
+        <nav className="mobile-tabs">
+          {Object.entries(SECTIONS).map(([id,meta]) => (
+            <button key={id} className={`mobile-tab ${section===id?"active":""}`}
+              onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}>
+              <span className="mobile-tab-icon">{meta.icon}</span>
+              {meta.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+    </>
   );
 }
