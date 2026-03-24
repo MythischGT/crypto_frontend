@@ -36,7 +36,7 @@ export const debounce = (func, wait = 300) => {
  * A fetch wrapper that automatically aborts the request if it exceeds the timeout.
  * Prevents the UI from hanging infinitely if the backend is down/sleeping.
  */
-export const fetchWithTimeout = async (url, options = {}, timeoutMs = 10000) => {
+export const fetchWithTimeout = async (url, options = {}, timeoutMs = 360000) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
