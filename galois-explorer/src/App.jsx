@@ -415,6 +415,10 @@ export default function GaloisExplorer() {
         html { font-size:16px; }
         html, body, #root {
           min-height:100dvh;
+          width: 100%;           /* Force full width */
+          max-width: none;       /* Strip Vite's 1280px limit */
+          margin: 0;             /* Remove centering margins */
+          padding: 0;
           background:${C.bg};
           color:${C.ink};
           scrollbar-gutter:stable;
