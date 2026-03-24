@@ -62,7 +62,7 @@ const OPS = {
   ecc: [
     { id:"curves",     label:"List Curves",      desc:"All available named curves",
       method:"GET", path:"/api/ecc/curves", fields:[]},
-    { id:"curve_info", label:"Curve Info",        desc:"Parameters for a specific curve",
+    { id:"curve_info", label:"Curve Info",       desc:"Parameters for a specific curve",
       method:"GET", path:"/api/ecc/curves/:name",
       fields:[{key:"name",label:"Curve",type:"select",options:CURVES}]},
     { id:"generator",  label:"Generator Point G", desc:"Base point G coordinates",
@@ -130,7 +130,7 @@ const OPS = {
       note:"Both parties run this with the same shared secret to get an identical AES key.",
       fields:[
         {key:"secret",       label:"Shared secret",     placeholder:"(decimal from /shared_secret)"},
-        {key:"secret_group", label:"Group",              type:"select",options:GROUPS,default:"modp2048"},
+        {key:"secret_group", label:"Group",             type:"select",options:GROUPS,default:"modp2048"},
         {key:"length",       label:"Key length (bytes)", placeholder:"32",default:"32",hint:"1 – 64"},
       ]},
   ],
@@ -176,8 +176,8 @@ function MethodPill({ method }) {
   return (
     <span style={{
       fontFamily:"'Fragment Mono',monospace", fontSize:"0.6rem",
-      fontWeight:400, letterSpacing:"0.08em",
-      padding:"0.2rem 0.5rem", borderRadius:"0.2rem",
+      fontWeight:600, letterSpacing:"0.08em",
+      padding:"0.25rem 0.6rem", borderRadius:"0.3rem",
       background: isGet ? C.greenLight : C.amberLight,
       color:       isGet ? C.green     : C.amber,
       border:      `1px solid ${isGet ? C.greenMid + "60" : C.amber + "40"}`,
@@ -218,9 +218,9 @@ function JsonTree({ data, depth = 0 }) {
             fontSize:"0.72rem", lineHeight:1.65, color,
             background:C.bgDeep, border:`1px solid ${C.border}`,
             borderLeft:`3px solid ${color}`,
-            borderRadius:"0 0.3rem 0.3rem 0",
-            padding:"0.4rem 0.625rem",
-            marginTop:"0.25rem", marginBottom:"0.125rem",
+            borderRadius:"0 0.4rem 0.4rem 0",
+            padding:"0.5rem 0.75rem",
+            marginTop:"0.3rem", marginBottom:"0.2rem",
           }}>{data}</div>
         );
       }
@@ -265,7 +265,7 @@ function JsonTree({ data, depth = 0 }) {
 
 function FieldInput({ field, value, onChange }) {
   return (
-    <div>
+    <div className="field-container">
       <label>{field.label}</label>
       {field.type === "select"
         ? <select value={value} onChange={e => onChange(field.key, e.target.value)}>
@@ -312,43 +312,6 @@ function Sidebar({ section, opId, onSection, onOp }) {
         );
       })}
     </nav>
-  );
-}
-
-function OutputPanel({ result, error, loading, op, ref: resultRef }) {
-  const hasContent = loading || error || result !== null;
-  return (
-    <div className="output-card">
-      <div className="output-header">
-        <span className={`output-dot ${error ? "error" : result ? "ok" : ""}`}/>
-        <span className="output-label">
-          {loading ? "Computing…" : error ? "Error" : result !== null ? "Result" : "Output"}
-        </span>
-        {result && !error && (
-          <span className="output-meta">{op.method} {op.path}</span>
-        )}
-      </div>
-      <div className="output-body" ref={resultRef}>
-        {loading && (
-          <div className="output-empty">
-            <Spinner/>
-            <span style={{marginLeft:"0.5rem", color:C.inkMid}}>Running request…</span>
-          </div>
-        )}
-        {!loading && error && (
-          <pre className="error-text">{error}</pre>
-        )}
-        {!loading && !error && result !== null && (
-          <JsonTree data={result}/>
-        )}
-        {!loading && !error && result === null && (
-          <div className="output-empty">
-            <div className="output-glyph">∅</div>
-            <p>Run a request to see the result</p>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -412,73 +375,78 @@ export default function GaloisExplorer() {
         @import url('${FONTS}');
 
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        html { font-size:16px; }
-        html, body, #root {
-          min-height:100dvh;
-          width: 100%;           /* Force full width */
-          max-width: none;       /* Strip Vite's 1280px limit */
-          margin: 0;             /* Remove centering margins */
-          padding: 0;
-          background:${C.bg};
-          color:${C.ink};
-          scrollbar-gutter:stable;
-        }
+        html { font-size:16px; background:${C.bg}; }
         body {
           font-family:'DM Sans', sans-serif;
-          line-height:1.55;
+          line-height:1.6;
           -webkit-font-smoothing:antialiased;
+          color:${C.ink};
+          margin: 0; padding: 0;
           overflow-x:hidden;
         }
 
         /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width:0.3rem; }
+        ::-webkit-scrollbar { width:0.4rem; height:0.4rem; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:${C.borderMid}; border-radius:99rem; }
+        ::-webkit-scrollbar-thumb:hover { background:${C.inkDim}; }
 
         /* ── Form elements ── */
+        .field-container { display: flex; flex-direction: column; }
         label {
           display:block;
-          font-family:'DM Sans', sans-serif;
-          font-size:0.6875rem; font-weight:600;
-          letter-spacing:0.07em; text-transform:uppercase;
-          color:${C.inkMid}; margin-bottom:0.35rem;
+          font-size:0.7rem; font-weight:600;
+          letter-spacing:0.05em; text-transform:uppercase;
+          color:${C.inkMid}; margin-bottom:0.4rem;
         }
         input, select {
           width:100%; display:block;
           font-family:'Fragment Mono', monospace;
-          font-size:0.8rem;
-          background:${C.surface}; color:${C.ink};
-          border:1.5px solid ${C.border};
-          border-radius:0.375rem;
-          padding:0.55rem 0.75rem;
+          font-size:0.85rem;
+          background:${C.surfaceAlt}; color:${C.ink};
+          border:1px solid ${C.border};
+          border-radius:0.4rem;
+          padding:0.6rem 0.85rem;
           outline:none; appearance:none;
-          transition:border-color 0.15s, box-shadow 0.15s;
+          transition:all 0.2s ease;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
         input:focus, select:focus {
+          background:${C.surface};
           border-color:${C.green};
-          box-shadow:0 0 0 3px ${C.greenLight};
+          box-shadow: 0 0 0 3px ${C.greenLight}, inset 0 1px 2px rgba(0,0,0,0.01);
         }
         input::placeholder { color:${C.inkDim}; font-style:italic; }
         select {
           cursor:pointer;
           background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${C.inkDim.slice(1)}' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
           background-repeat:no-repeat;
-          background-position:right 0.75rem center;
-          padding-right:2.25rem;
+          background-position:right 0.85rem center;
+          padding-right:2.5rem;
         }
         .hint {
           font-family:'Fragment Mono', monospace;
-          font-size:0.65rem; color:${C.inkDim};
-          margin-top:0.3rem; font-style:italic;
+          font-size:0.68rem; color:${C.inkDim};
+          margin-top:0.4rem; font-style:italic;
         }
-        button { cursor:pointer; border:none; background:none; }
+        button { cursor:pointer; border:none; background:none; transition: all 0.2s; }
 
         /* ── Layout ── */
+        .app-wrapper {
+          width: 100%;
+          min-height: 100dvh;
+          background:${C.bg};
+          display: flex;
+          justify-content: center;
+        }
         .app-shell {
+          width: 100%;
+          max-width: 90rem; /* Modern containment for ultrawide */
+          background:${C.bg};
           display:grid;
           grid-template-rows:3.5rem 1fr;
           grid-template-columns:1fr;
-          min-height:100dvh;
+          box-shadow: 0 0 40px rgba(0,0,0,0.02);
         }
         .topbar {
           grid-row:1;
@@ -492,200 +460,199 @@ export default function GaloisExplorer() {
         .body-grid {
           grid-row:2;
           display:grid;
-          grid-template-columns: auto 1fr; /* Let the sidebar dictate the width */
+          grid-template-columns: 14.5rem 1fr; 
           align-items:start;
         }
 
         /* ── Sidebar ── */
         .sidebar {
           grid-column:1;
-          width: 13.5rem; /* Add this explicit width */
           background:${C.surface};
           border-right:1px solid ${C.border};
-          padding:1.25rem 0.875rem;
+          padding:1.5rem 1rem;
           position:sticky; top:3.5rem;
           height:calc(100dvh - 3.5rem);
           overflow-y:auto;
-          display:flex; flex-direction:column; gap:0.125rem;
+          display:flex; flex-direction:column; gap:0.5rem;
         }
-        .nav-group { margin-bottom:0.25rem; }
+        .nav-group { margin-bottom:0.5rem; }
         .nav-section {
           width:100%; text-align:left;
-          display:flex; align-items:center; gap:0.625rem;
-          padding:0.5rem 0.625rem; border-radius:0.5rem;
-          transition:background 0.12s;
+          display:flex; align-items:center; gap:0.75rem;
+          padding:0.6rem 0.75rem; border-radius:0.5rem;
           font-family:'DM Sans', sans-serif;
         }
         .nav-section:hover { background:${C.bgDeep}; }
-        .nav-section.active { background:${C.greenLight}; }
+        .nav-section.active { background:${C.surfaceAlt}; border: 1px solid ${C.border}; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .nav-icon {
-          font-size:1rem; width:1.5rem; text-align:center;
+          font-size:1.1rem; width:1.5rem; text-align:center;
           color:${C.inkMid}; flex-shrink:0;
         }
         .nav-section.active .nav-icon { color:${C.green}; }
-        .nav-text { display:flex; flex-direction:column; gap:0.0625rem; }
+        .nav-text { display:flex; flex-direction:column; gap:0.1rem; }
         .nav-label {
-          font-size:0.8125rem; font-weight:600;
+          font-size:0.85rem; font-weight:600;
           color:${C.ink}; line-height:1.2;
         }
         .nav-section.active .nav-label { color:${C.greenDim}; }
         .nav-sub {
           font-family:'Fragment Mono', monospace;
-          font-size:0.6rem; color:${C.inkDim};
+          font-size:0.65rem; color:${C.inkDim};
         }
-        .nav-ops { padding:0.25rem 0 0.25rem 2.125rem; display:flex; flex-direction:column; gap:0.0625rem; }
+        .nav-ops { padding:0.5rem 0 0.5rem 2.25rem; display:flex; flex-direction:column; gap:0.15rem; }
         .nav-op {
           width:100%; text-align:left;
           font-family:'DM Sans', sans-serif;
-          font-size:0.78rem; font-weight:400; color:${C.inkMid};
-          padding:0.3125rem 0.5rem; border-radius:0.3rem;
-          transition:all 0.1s; position:relative;
+          font-size:0.8rem; font-weight:500; color:${C.inkMid};
+          padding:0.4rem 0.6rem; border-radius:0.4rem;
+          position:relative;
         }
         .nav-op:hover { color:${C.ink}; background:${C.bgDeep}; }
         .nav-op.active {
-          color:${C.green}; font-weight:500;
+          color:${C.green}; font-weight:600;
           background:${C.greenLight};
         }
         .nav-op.active::before {
-          content:""; position:absolute; left:0; top:20%; bottom:20%;
-          width:2px; background:${C.green}; border-radius:99px;
+          content:""; position:absolute; left:0; top:25%; bottom:25%;
+          width:3px; background:${C.green}; border-radius:99px;
         }
 
         /* ── Main content ── */
         .main {
           grid-column:2;
-          padding:2.25rem 2.5rem 4rem;
+          padding:2.5rem 3rem 4rem;
           min-width:0;
         }
 
+        /* ── Mobile Ops Menu (Hidden on Desktop) ── */
+        .mobile-ops-menu { display: none; }
+
         /* ── Op header ── */
         .op-header {
-          margin-bottom:1.75rem;
-          padding-bottom:1.5rem;
-          border-bottom:1px solid ${C.border};
+          margin-bottom:2rem;
         }
         .op-tag-row {
-          display:flex; align-items:center; gap:0.5rem;
-          margin-bottom:0.75rem;
-          min-width:0; /* Allows shrinking */
+          display:flex; align-items:center; gap:0.75rem;
+          margin-bottom:1rem;
+          min-width:0;
         }
         .op-path {
           font-family:'Fragment Mono', monospace;
-          font-size:0.75rem; color:${C.inkMid};
-          background:${C.bgDeep};
+          font-size:0.8rem; color:${C.inkMid};
+          background:${C.surfaceAlt};
           border:1px solid ${C.border};
-          padding:0.2rem 0.625rem; border-radius:0.25rem;
+          padding:0.25rem 0.75rem; border-radius:0.3rem;
           white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
         }
         .op-title {
           font-family:'Fraunces', serif;
-          font-weight:600; font-size:2rem;
+          font-weight:600; font-size:2.25rem;
           letter-spacing:-0.02em; color:${C.ink};
-          margin-bottom:0.375rem; line-height:1.15;
+          margin-bottom:0.5rem; line-height:1.2;
         }
         .op-desc {
           font-family:'Fragment Mono', monospace;
-          font-size:0.8rem; color:${C.inkMid};
+          font-size:0.9rem; color:${C.inkMid};
         }
 
         /* ── Note banner ── */
         .note-banner {
           background:${C.blueLight};
           border:1px solid ${C.blue}30;
-          border-left:3px solid ${C.blue};
-          border-radius:0 0.5rem 0.5rem 0;
-          padding:0.625rem 0.875rem;
+          border-left:4px solid ${C.blue};
+          border-radius:0.5rem;
+          padding:0.8rem 1rem;
           font-family:'Fragment Mono', monospace;
-          font-size:0.75rem; color:${C.blue};
-          margin-bottom:1.25rem; line-height:1.6;
+          font-size:0.8rem; color:${C.blue};
+          margin-bottom:1.5rem; line-height:1.6;
         }
 
         /* ── Form card ── */
         .form-card {
           background:${C.surface};
           border:1px solid ${C.border};
-          border-radius:0.625rem;
-          padding:1.375rem;
-          margin-bottom:1.25rem;
-          box-shadow:0 1px 3px rgba(0,0,0,0.04);
+          border-radius:0.75rem;
+          padding:1.5rem;
+          margin-bottom:1.5rem;
+          box-shadow:0 4px 12px rgba(0,0,0,0.03);
         }
         .form-grid {
           display:grid;
-          grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr));
-          gap:1rem;
-          margin-bottom:1.25rem;
+          grid-template-columns:repeat(auto-fill, minmax(15rem, 1fr));
+          gap:1.25rem;
+          margin-bottom:1.5rem;
         }
-        .run-row { display:flex; align-items:center; gap:0.875rem; }
+        .run-row { display:flex; align-items:center; gap:1rem; }
         .run-btn {
-          height:2.25rem; padding:0 1.375rem;
+          height:2.5rem; padding:0 1.5rem;
           background:${C.green}; color:#fff;
           font-family:'DM Sans', sans-serif;
-          font-weight:600; font-size:0.875rem;
-          border-radius:0.4rem;
+          font-weight:600; font-size:0.9rem;
+          border-radius:0.5rem;
           display:flex; align-items:center; gap:0.5rem;
-          transition:background 0.15s, box-shadow 0.15s;
-          box-shadow:0 1px 4px ${C.green}40;
+          box-shadow:0 2px 8px ${C.green}40;
         }
-        .run-btn:hover { background:${C.greenDim}; }
-        .run-btn:disabled { background:${C.greenMid}; box-shadow:none; cursor:not-allowed; }
+        .run-btn:hover:not(:disabled) { background:${C.greenDim}; transform: translateY(-1px); box-shadow:0 4px 12px ${C.green}50; }
+        .run-btn:active:not(:disabled) { transform: translateY(0); }
+        .run-btn:disabled { background:${C.greenMid}; opacity: 0.7; box-shadow:none; cursor:not-allowed; }
         .shortcut {
           font-family:'Fragment Mono', monospace;
-          font-size:0.7rem; color:${C.inkDim};
+          font-size:0.75rem; color:${C.inkDim};
         }
 
         /* ── Output card ── */
         .output-card {
           background:${C.surface}; border:1px solid ${C.border};
-          border-radius:0.625rem; margin-bottom:1.25rem;
-          overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);
-          display:flex; flex-direction:column; height:30rem;
-          min-width:0; /* Forces grid boundary compliance */
+          border-radius:0.75rem; margin-bottom:1.5rem;
+          overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.03);
+          display:flex; flex-direction:column; height:32rem;
+          min-width:0;
         }
         .output-header {
-          padding:0.625rem 1rem; background:${C.bgDeep};
+          padding:0.75rem 1.25rem; background:${C.surfaceAlt};
           border-bottom:1px solid ${C.border};
-          display:flex; align-items:center; gap:0.5rem;
+          display:flex; align-items:center; gap:0.6rem;
           flex-shrink:0; min-width:0; 
         }
         .output-dot {
-          width:0.5rem; height:0.5rem; border-radius:50%; flex-shrink:0;
-          background:${C.borderMid}; transition:background 0.2s;
+          width:0.6rem; height:0.6rem; border-radius:50%; flex-shrink:0;
+          background:${C.borderMid}; transition:background 0.3s ease;
         }
-        .output-dot.ok    { background:${C.green}; box-shadow:0 0 0.375rem ${C.green}80; }
-        .output-dot.error { background:${C.red};   box-shadow:0 0 0.375rem ${C.red}80; }
+        .output-dot.ok    { background:${C.green}; box-shadow:0 0 0.4rem ${C.green}60; }
+        .output-dot.error { background:${C.red};   box-shadow:0 0 0.4rem ${C.red}60; }
         .output-label {
           font-family:'DM Sans', sans-serif;
-          font-size:0.7rem; font-weight:600;
-          letter-spacing:0.07em; text-transform:uppercase; color:${C.inkMid};
+          font-size:0.75rem; font-weight:600;
+          letter-spacing:0.08em; text-transform:uppercase; color:${C.inkMid};
         }
         .output-meta {
           margin-left:auto;
           font-family:'Fragment Mono', monospace;
-          font-size:0.65rem; color:${C.inkDim};
+          font-size:0.7rem; color:${C.inkDim};
           white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
         }
         .output-body {
           flex:1; min-height:0;
           overflow-y:auto; overflow-x:hidden;
-          padding:1.125rem 1.25rem;
+          padding:1.25rem 1.5rem;
           font-family:'Fragment Mono', monospace;
-          font-size:0.78rem; line-height:1.85;
+          font-size:0.85rem; line-height:1.8;
         }
         .output-empty {
           display:flex; flex-direction:column;
           align-items:center; justify-content:center;
-          height:100%; gap:0.75rem;
+          height:100%; gap:1rem;
           color:${C.inkDim}; font-family:'DM Sans', sans-serif;
-          font-size:0.875rem;
+          font-size:0.95rem;
         }
         .output-glyph {
           font-family:'Fraunces', serif;
-          font-size:2.5rem; color:${C.border};
+          font-size:3rem; color:${C.border};
           line-height:1;
         }
         .error-text {
           font-family:'Fragment Mono', monospace;
-          font-size:0.75rem; color:${C.red};
+          font-size:0.8rem; color:${C.red};
           white-space:pre-wrap; margin:0; line-height:1.7;
         }
 
@@ -693,238 +660,286 @@ export default function GaloisExplorer() {
         .history-card {
           background:${C.surface};
           border:1px solid ${C.border};
-          border-radius:0.625rem; overflow:hidden;
-          box-shadow:0 1px 3px rgba(0,0,0,0.04);
+          border-radius:0.75rem; overflow:hidden;
+          box-shadow:0 4px 12px rgba(0,0,0,0.03);
         }
         .history-head {
-          padding:0.5rem 1rem;
-          background:${C.bgDeep};
+          padding:0.75rem 1.25rem;
+          background:${C.surfaceAlt};
           border-bottom:1px solid ${C.border};
           font-family:'DM Sans', sans-serif;
-          font-size:0.6875rem; font-weight:600;
-          letter-spacing:0.07em; text-transform:uppercase; color:${C.inkDim};
+          font-size:0.75rem; font-weight:600;
+          letter-spacing:0.08em; text-transform:uppercase; color:${C.inkDim};
         }
         .history-row {
-          display:flex; align-items:center; gap:0.625rem;
-          padding:0.625rem 1rem; cursor:pointer;
-          transition:background 0.1s;
+          display:flex; align-items:center; gap:0.75rem;
+          padding:0.75rem 1.25rem; cursor:pointer;
+          transition:background 0.2s;
           border-bottom:1px solid ${C.border};
         }
         .history-row:last-child { border-bottom:none; }
-        .history-row:hover { background:${C.bgDeep}; }
+        .history-row:hover { background:${C.surfaceAlt}; }
         .history-name {
           font-family:'DM Sans', sans-serif;
-          font-size:0.8125rem; font-weight:500; color:${C.ink}; flex:1;
+          font-size:0.85rem; font-weight:500; color:${C.ink}; flex:1;
         }
         .history-time {
           font-family:'Fragment Mono', monospace;
-          font-size:0.675rem; color:${C.inkDim};
+          font-size:0.7rem; color:${C.inkDim};
         }
 
         /* ── Topbar ── */
         .wordmark {
           font-family:'Fraunces', serif;
-          font-size:1.125rem; font-weight:600;
+          font-size:1.25rem; font-weight:600;
           color:${C.ink}; letter-spacing:-0.02em;
           display:flex; align-items:baseline; gap:0.25rem;
           white-space:nowrap;
         }
         .wordmark-sub {
           font-family:'Fragment Mono', monospace;
-          font-size:0.6rem; font-weight:400;
+          font-size:0.65rem; font-weight:600;
           color:${C.green}; letter-spacing:0.05em;
           border:1px solid ${C.greenMid};
-          padding:0.1rem 0.35rem; border-radius:0.2rem;
-          margin-left:0.25rem;
+          padding:0.15rem 0.4rem; border-radius:0.25rem;
+          margin-left:0.3rem; text-transform:uppercase;
         }
         .url-pill {
-          flex:1; max-width:22rem; min-width:0; /* Added min-width:0 to allow shrinking */
-          height:2rem;
-          background:${C.bgDeep}; border:1px solid ${C.border};
-          border-radius:0.375rem;
-          display:flex; align-items:center; gap:0.5rem;
-          padding:0 0.75rem; cursor:text;
+          flex:1; max-width:24rem; min-width:0; 
+          height:2.25rem;
+          background:${C.surfaceAlt}; border:1px solid ${C.border};
+          border-radius:0.4rem;
+          display:flex; align-items:center; gap:0.6rem;
+          padding:0 0.85rem; cursor:text;
+          transition: border-color 0.2s;
         }
+        .url-pill:hover { border-color: ${C.borderMid}; }
         .url-dot {
-          width:0.375rem; height:0.375rem; border-radius:50%;
+          width:0.4rem; height:0.4rem; border-radius:50%;
           background:${C.green}; flex-shrink:0;
-          box-shadow:0 0 0.25rem ${C.green};
+          box-shadow:0 0 0.3rem ${C.green};
         }
         .url-text {
           font-family:'Fragment Mono', monospace;
-          font-size:0.72rem; color:${C.inkMid};
+          font-size:0.8rem; color:${C.inkMid};
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
         .docs-link {
           margin-left:auto;
           font-family:'Fragment Mono', monospace;
-          font-size:0.72rem; color:${C.inkMid};
-          text-decoration:none; padding:0.25rem 0.625rem;
-          border:1px solid ${C.border}; border-radius:0.3rem;
-          transition:border-color 0.15s, color 0.15s;
+          font-size:0.8rem; font-weight: 500; color:${C.inkMid};
+          text-decoration:none; padding:0.4rem 0.75rem;
+          border:1px solid ${C.border}; border-radius:0.4rem;
+          transition:all 0.2s;
           white-space:nowrap;
         }
-        .docs-link:hover { color:${C.ink}; border-color:${C.borderMid}; }
+        .docs-link:hover { color:${C.ink}; border-color:${C.borderMid}; background:${C.surfaceAlt}; }
 
         /* ── Mobile bottom tabs ── */
         .mobile-tabs { display:none; }
 
         /* ── Animations ── */
         @keyframes spin    { to { transform:rotate(360deg); } }
-        @keyframes fadeUp  { from { opacity:0; transform:translateY(0.4rem); } to { opacity:1; transform:translateY(0); } }
-        .fade-up { animation:fadeUp 0.2s ease both; }
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(0.5rem); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation:fadeUp 0.3s ease-out both; }
 
-        /* ── Responsive ── */
-        @media (max-width:56rem) {
-          .sidebar   { width: 4.5rem; padding:1rem 0.5rem; } /* Update width here */
-          .nav-icon  { width:100%; font-size:1.125rem; }
+        /* ── Responsive breakpoints ── */
+        @media (max-width:64rem) {
+          .body-grid { grid-template-columns:5rem 1fr; }
+          .sidebar   { padding:1.5rem 0.5rem; }
+          .nav-icon  { width:100%; font-size:1.25rem; }
           .nav-text, .nav-ops { display:none; }
-          .nav-section { justify-content:center; }
-          .main      { padding:1.5rem 1.75rem 3rem; }
+          .nav-section { justify-content:center; padding:0.75rem 0; }
+          .main      { padding:2rem 2rem 4rem; }
         }
-        @media (max-width:37.5rem) {
+        
+        @media (max-width:40rem) {
           .body-grid { grid-template-columns:1fr; }
           .sidebar   { display:none; }
+          
+          /* Show mobile pills for operations */
+          .mobile-ops-menu {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+          }
+          .mobile-ops-menu::-webkit-scrollbar { display: none; }
+          .mobile-op-pill {
+            padding: 0.5rem 1rem;
+            border-radius: 99rem;
+            background: ${C.surfaceAlt};
+            border: 1px solid ${C.border};
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem; font-weight: 500;
+            color: ${C.inkMid};
+            white-space: nowrap;
+          }
+          .mobile-op-pill.active {
+            background: ${C.green};
+            color: #fff;
+            border-color: ${C.green};
+            box-shadow: 0 2px 6px ${C.green}40;
+          }
+
           .mobile-tabs {
             display:flex; position:fixed;
             bottom:0; left:0; right:0;
             background:${C.surface}; border-top:1px solid ${C.border};
-            z-index:200; height:3.5rem;
+            z-index:200; height:4rem;
+            padding-bottom: env(safe-area-inset-bottom); /* iOS support */
           }
           .mobile-tab {
             flex:1; display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:0.125rem;
+            align-items:center; justify-content:center; gap:0.2rem;
             font-family:'DM Sans', sans-serif;
-            font-size:0.5rem; font-weight:600;
+            font-size:0.6rem; font-weight:600;
             letter-spacing:0.04em; text-transform:uppercase;
             color:${C.inkDim}; cursor:pointer;
             border-top:2px solid transparent;
-            transition:all 0.15s;
+            transition:all 0.2s;
           }
-          .mobile-tab.active { color:${C.green}; border-top-color:${C.green}; background:${C.greenLight}; }
+          .mobile-tab.active { color:${C.green}; border-top-color:${C.green}; background:${C.greenLight}30; }
           .mobile-tab-icon   { font-size:1.25rem; }
-          .main  { padding:1.25rem 1rem 5rem; }
+          .main  { padding:1.5rem 1.25rem 6rem; }
           .docs-link { display:none; }
           .form-grid { grid-template-columns:1fr; }
-          .output-card { height:22rem; }
-          .op-title  { font-size:1.5rem; }
+          .output-card { height:26rem; }
+          .op-title  { font-size:1.75rem; }
         }
       `}</style>
 
-      <div className="app-shell">
-        {/* ── Topbar ── */}
-        <header className="topbar">
-          <div className="wordmark">
-            𝔾 explorer
-            <span className="wordmark-sub">API</span>
-          </div>
-
-          {editingUrl
-            ? <input autoFocus defaultValue={baseUrl}
-                style={{flex:1,maxWidth:"22rem",height:"2rem",fontSize:"0.75rem",padding:"0 0.75rem"}}
-                onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
-                onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
-              />
-            : <div className="url-pill" onClick={() => setEditingUrl(true)} title="Click to edit">
-                <span className="url-dot"/>
-                <span className="url-text">{baseUrl}</span>
-              </div>
-          }
-
-          <a className="docs-link" href={`${baseUrl}/docs`} target="_blank" rel="noreferrer">
-            /docs ↗
-          </a>
-        </header>
-
-        {/* ── Body ── */}
-        <div className="body-grid">
-          <div className="sidebar">
-            <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
-          </div>
-
-          <main className="main">
-            {/* Op header */}
-            <div className="op-header">
-              <div className="op-tag-row">
-                <MethodPill method={op.method}/>
-                <code className="op-path">{op.path}</code>
-              </div>
-              <h1 className="op-title">{op.label}</h1>
-              <p className="op-desc">{op.desc}</p>
+      <div className="app-wrapper">
+        <div className="app-shell">
+          {/* ── Topbar ── */}
+          <header className="topbar">
+            <div className="wordmark">
+              𝔾 explorer
+              <span className="wordmark-sub">API</span>
             </div>
 
-            {op.note && <div className="note-banner">{op.note}</div>}
+            {editingUrl
+              ? <input autoFocus defaultValue={baseUrl}
+                  style={{flex:1,maxWidth:"24rem",height:"2.25rem",fontSize:"0.8rem",padding:"0 0.85rem"}}
+                  onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
+                  onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
+                />
+              : <div className="url-pill" onClick={() => setEditingUrl(true)} title="Click to edit">
+                  <span className="url-dot"/>
+                  <span className="url-text">{baseUrl}</span>
+                </div>
+            }
 
-            {/* Form */}
-            <div className="form-card">
-              {op.fields.length > 0
-                ? <div className="form-grid">
-                    {op.fields.map(f => (
-                      <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={handleChange}/>
-                    ))}
-                  </div>
-                : <p className="hint" style={{marginBottom:"1rem"}}>No parameters — just send the request.</p>
-              }
-              <div className="run-row">
-                <button className="run-btn" onClick={call} disabled={loading}>
-                  {loading ? <><Spinner/> Running…</> : "Run"}
-                </button>
-                <span className="shortcut">⌃ Enter</span>
-              </div>
+            <a className="docs-link" href={`${baseUrl}/docs`} target="_blank" rel="noreferrer">
+              /docs ↗
+            </a>
+          </header>
+
+          {/* ── Body ── */}
+          <div className="body-grid">
+            <div className="sidebar">
+              <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
             </div>
 
-            {/* Output */}
-            <div className={`output-card ${result || error ? "fade-up" : ""}`}>
-              <div className="output-header">
-                <span className={`output-dot ${error?"error":result?"ok":""}`}/>
-                <span className="output-label">
-                  {loading?"Computing…":error?"Error":result?"Result":"Output"}
-                </span>
-                {result && !error && <span className="output-meta">{op.method} {op.path}</span>}
-              </div>
-              <div className="output-body" ref={resultRef}>
-                {loading && (
-                  <div className="output-empty">
-                    <Spinner/><span style={{marginLeft:"0.5rem"}}>Running…</span>
-                  </div>
-                )}
-                {!loading && error && <pre className="error-text">{error}</pre>}
-                {!loading && !error && result !== null && <JsonTree data={result}/>}
-                {!loading && !error && result === null && (
-                  <div className="output-empty">
-                    <div className="output-glyph">∅</div>
-                    <p>Run a request to see the result</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* History */}
-            {history.length > 0 && (
-              <div className="history-card">
-                <div className="history-head">History</div>
-                {history.map((h,i) => (
-                  <div key={i} className="history-row" onClick={() => setResult(h.result)}>
-                    <MethodPill method={h.method}/>
-                    <span className="history-name">{h.label}</span>
-                    <span className="history-time">{h.ts}</span>
-                  </div>
+            <main className="main">
+              {/* Mobile Operations Nav */}
+              <div className="mobile-ops-menu">
+                {ops.map(o => (
+                  <button 
+                    key={o.id} 
+                    className={`mobile-op-pill ${opId === o.id ? "active" : ""}`} 
+                    onClick={() => setOpId(o.id)}>
+                    {o.label}
+                  </button>
                 ))}
               </div>
-            )}
-          </main>
-        </div>
 
-        {/* ── Mobile bottom tabs ── */}
-        <nav className="mobile-tabs">
-          {Object.entries(SECTIONS).map(([id,meta]) => (
-            <button key={id} className={`mobile-tab ${section===id?"active":""}`}
-              onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}>
-              <span className="mobile-tab-icon">{meta.icon}</span>
-              {meta.label}
-            </button>
-          ))}
-        </nav>
+              {/* Op header */}
+              <div className="op-header">
+                <div className="op-tag-row">
+                  <MethodPill method={op.method}/>
+                  <code className="op-path">{op.path}</code>
+                </div>
+                <h1 className="op-title">{op.label}</h1>
+                <p className="op-desc">{op.desc}</p>
+              </div>
+
+              {op.note && <div className="note-banner">{op.note}</div>}
+
+              {/* Form */}
+              <div className="form-card">
+                {op.fields.length > 0
+                  ? <div className="form-grid">
+                      {op.fields.map(f => (
+                        <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={handleChange}/>
+                      ))}
+                    </div>
+                  : <p className="hint" style={{marginBottom:"1.25rem"}}>No parameters — just send the request.</p>
+                }
+                <div className="run-row">
+                  <button className="run-btn" onClick={call} disabled={loading}>
+                    {loading ? <><Spinner/> Running…</> : "Run Request"}
+                  </button>
+                  <span className="shortcut">⌃ Enter</span>
+                </div>
+              </div>
+
+              {/* Output */}
+              <div className={`output-card ${result || error ? "fade-up" : ""}`}>
+                <div className="output-header">
+                  <span className={`output-dot ${error?"error":result?"ok":""}`}/>
+                  <span className="output-label">
+                    {loading?"Computing…":error?"Error":result?"Result":"Output"}
+                  </span>
+                  {result && !error && <span className="output-meta">{op.method} {op.path}</span>}
+                </div>
+                <div className="output-body" ref={resultRef}>
+                  {loading && (
+                    <div className="output-empty">
+                      <Spinner/><span style={{marginLeft:"0.5rem"}}>Running…</span>
+                    </div>
+                  )}
+                  {!loading && error && <pre className="error-text">{error}</pre>}
+                  {!loading && !error && result !== null && <JsonTree data={result}/>}
+                  {!loading && !error && result === null && (
+                    <div className="output-empty">
+                      <div className="output-glyph">∅</div>
+                      <p>Run a request to see the result</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* History */}
+              {history.length > 0 && (
+                <div className="history-card">
+                  <div className="history-head">History</div>
+                  {history.map((h,i) => (
+                    <div key={i} className="history-row" onClick={() => setResult(h.result)}>
+                      <MethodPill method={h.method}/>
+                      <span className="history-name">{h.label}</span>
+                      <span className="history-time">{h.ts}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </main>
+          </div>
+
+          {/* ── Mobile bottom tabs ── */}
+          <nav className="mobile-tabs">
+            {Object.entries(SECTIONS).map(([id,meta]) => (
+              <button key={id} className={`mobile-tab ${section===id?"active":""}`}
+                onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}>
+                <span className="mobile-tab-icon">{meta.icon}</span>
+                {meta.label}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
     </>
   );
