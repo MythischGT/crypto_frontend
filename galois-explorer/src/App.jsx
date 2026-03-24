@@ -457,8 +457,8 @@ export default function GaloisExplorer() {
           flex: 1;
           align-items: flex-start;
           width: 100%;
-          max-width: 90rem; /* Keeps content constrained on ultrawide monitors */
-          margin: 0 auto;
+          max-width: 100rem; /* Increased slightly, but no longer auto-centered */
+          /* Notice: no margin: 0 auto; here, so it aligns left natively */
         }
 
         /* ── Sidebar ── */
