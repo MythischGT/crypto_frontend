@@ -28,11 +28,10 @@ html, body {
   font-family: 'DM Sans', sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  /* Darken the browser background slightly so the app shell pops on 4K screens */
-  background: var(--bgDeep); 
+  background: var(--bg); 
   color: var(--ink);
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh; /* dvh fixes mobile browser UI hiding bottom elements */
 }
 
 ::-webkit-scrollbar { width: 0.4rem; height: 0.4rem; }
@@ -68,16 +67,14 @@ select {
 .hint { font-family: 'Fragment Mono', monospace; font-size: 0.68rem; color: var(--inkDim); margin-top: 0.4rem; font-style: italic; }
 button { cursor: pointer; border: none; background: none; transition: all 0.2s; }
 
-/* ── 4K Containment Fixes ── */
+/* ── App Layout ── */
 .app-shell { 
   display: flex; 
   flex-direction: column; 
-  min-height: 100vh; 
+  min-height: 100dvh; 
   width: 100%;
-  max-width: 100rem; /* Caps width at 1600px */
-  margin: 0 auto;    /* Centers the shell on screens larger than 1600px */
-  background: var(--bg); /* Keeps inner background consistent */
-  box-shadow: 0 0 40px rgba(0,0,0,0.03); /* Soft shadow to detach it from the body background on 4K */
+  /* Removed the max-width and centering to keep it left-aligned */
+  background: var(--bg);
 }
 
 .topbar {
@@ -87,12 +84,11 @@ button { cursor: pointer; border: none; background: none; transition: all 0.2s; 
   position: sticky; top: 0; z-index: 100;
 }
 
-/* Removed max-width from here since the parent .app-shell handles it now */
 .layout-body { display: flex; flex: 1; align-items: flex-start; width: 100%; }
 
 .sidebar {
   width: 16rem; flex-shrink: 0; position: sticky; top: 3.5rem;
-  height: calc(100vh - 3.5rem); overflow-y: auto; background: var(--surface);
+  height: calc(100dvh - 3.5rem); overflow-y: auto; background: var(--surface);
   border-right: 1px solid var(--border); padding: 1.5rem 1rem;
 }
 .nav-group { margin-bottom: 0.5rem; }
@@ -121,7 +117,12 @@ button { cursor: pointer; border: none; background: none; transition: all 0.2s; 
   width: 3px; background: var(--orange); border-radius: 99px;
 }
 
-.main-content { flex: 1; min-width: 0; padding: 2.5rem 3rem 4rem; }
+.main-content { 
+  flex: 1; 
+  min-width: 0; 
+  max-width: 80rem; /* The proper 4K fix: limits content stretching without centering the app shell */
+  padding: 2.5rem 3rem 4rem; 
+}
 .mobile-ops-menu { display: none; }
 
 .op-header { margin-bottom: 2rem; }
@@ -201,7 +202,8 @@ button { cursor: pointer; border: none; background: none; transition: all 0.2s; 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }
 .fade-up { animation: fadeUp 0.3s ease-out both; }
 
-@media (max-width: 900px) {
+/* Expanded breakpoint to catch modern phones in landscape mode */
+@media (max-width: 1024px) {
   .sidebar { display: none; }
   .main-content { padding: 1.5rem 1.5rem 6rem 1.5rem; }
   .mobile-ops-menu { display: flex; overflow-x: auto; gap: 0.5rem; margin-bottom: 1.5rem; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
