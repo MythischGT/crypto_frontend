@@ -16,11 +16,11 @@ const C = {
   ink:        "#1C1A17",
   inkMid:     "#5C5850",
   inkDim:     "#9C9890",
-  // Emerald accent
-  green:      "#1A6B45",
-  greenLight: "#E8F3ED",
-  greenMid:   "#7AB89A",
-  greenDim:   "#104030",
+  // Primary Accent (Warm Orange)
+  green:      "#D35400", 
+  greenLight: "#FDEBD0",
+  greenMid:   "#E67E22",
+  greenDim:   "#A04000",
   // Semantic
   red:        "#C0392B",
   redLight:   "#FBEAE8",
@@ -567,6 +567,7 @@ export default function GaloisExplorer() {
         .op-tag-row {
           display:flex; align-items:center; gap:0.5rem;
           margin-bottom:0.75rem;
+          min-width:0; /* Allows shrinking */
         }
         .op-path {
           font-family:'Fragment Mono', monospace;
@@ -574,6 +575,7 @@ export default function GaloisExplorer() {
           background:${C.bgDeep};
           border:1px solid ${C.border};
           padding:0.2rem 0.625rem; border-radius:0.25rem;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
         }
         .op-title {
           font-family:'Fraunces', serif;
@@ -633,21 +635,17 @@ export default function GaloisExplorer() {
 
         /* ── Output card ── */
         .output-card {
-          background:${C.surface};
-          border:1px solid ${C.border};
-          border-radius:0.625rem;
-          margin-bottom:1.25rem;
-          overflow:hidden;
-          box-shadow:0 1px 3px rgba(0,0,0,0.04);
-          display:flex; flex-direction:column;
-          height:30rem;
+          background:${C.surface}; border:1px solid ${C.border};
+          border-radius:0.625rem; margin-bottom:1.25rem;
+          overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);
+          display:flex; flex-direction:column; height:30rem;
+          min-width:0; /* Forces grid boundary compliance */
         }
         .output-header {
-          padding:0.625rem 1rem;
-          background:${C.bgDeep};
+          padding:0.625rem 1rem; background:${C.bgDeep};
           border-bottom:1px solid ${C.border};
           display:flex; align-items:center; gap:0.5rem;
-          flex-shrink:0;
+          flex-shrink:0; min-width:0; 
         }
         .output-dot {
           width:0.5rem; height:0.5rem; border-radius:50%; flex-shrink:0;
@@ -664,6 +662,7 @@ export default function GaloisExplorer() {
           margin-left:auto;
           font-family:'Fragment Mono', monospace;
           font-size:0.65rem; color:${C.inkDim};
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
         }
         .output-body {
           flex:1; min-height:0;
