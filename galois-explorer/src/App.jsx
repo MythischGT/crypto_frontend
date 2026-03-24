@@ -722,6 +722,7 @@ export default function GaloisExplorer() {
           font-size:1.125rem; font-weight:600;
           color:${C.ink}; letter-spacing:-0.02em;
           display:flex; align-items:baseline; gap:0.25rem;
+          white-space:nowrap;
         }
         .wordmark-sub {
           font-family:'Fragment Mono', monospace;
@@ -732,7 +733,8 @@ export default function GaloisExplorer() {
           margin-left:0.25rem;
         }
         .url-pill {
-          flex:1; max-width:22rem; height:2rem;
+          flex:1; max-width:22rem; min-width:0; /* Added min-width:0 to allow shrinking */
+          height:2rem;
           background:${C.bgDeep}; border:1px solid ${C.border};
           border-radius:0.375rem;
           display:flex; align-items:center; gap:0.5rem;
@@ -755,6 +757,7 @@ export default function GaloisExplorer() {
           text-decoration:none; padding:0.25rem 0.625rem;
           border:1px solid ${C.border}; border-radius:0.3rem;
           transition:border-color 0.15s, color 0.15s;
+          white-space:nowrap;
         }
         .docs-link:hover { color:${C.ink}; border-color:${C.borderMid}; }
 
@@ -768,11 +771,14 @@ export default function GaloisExplorer() {
 
         /* ── Responsive ── */
         @media (max-width:56rem) {
-          .sidebar   { width:3rem; padding:1rem 0.5rem; }
+          /* FIX: Tell the grid to shrink the first column */
+          .body-grid { grid-template-columns: 4rem 1fr; } 
+          .sidebar   { width: 100%; padding:1rem 0.5rem; } 
           .nav-icon  { width:100%; font-size:1.125rem; }
           .nav-text, .nav-ops { display:none; }
           .nav-section { justify-content:center; }
           .main      { padding:1.5rem 1.75rem 3rem; }
+          .topbar    { gap:0.5rem; padding:0 1rem; }
         }
         @media (max-width:37.5rem) {
           .body-grid { grid-template-columns:1fr; }
