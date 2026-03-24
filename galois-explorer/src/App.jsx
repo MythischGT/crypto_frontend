@@ -283,7 +283,7 @@ function FieldInput({ field, value, onChange }) {
 
 function Sidebar({ section, opId, onSection, onOp }) {
   return (
-    <nav className="sidebar">
+    <nav className="sidebar-nav">
       {Object.entries(SECTIONS).map(([id, meta]) => {
         const active = section === id;
         return (
@@ -375,14 +375,14 @@ export default function GaloisExplorer() {
         @import url('${FONTS}');
 
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        html { font-size:16px; background:${C.bg}; }
-        body {
-          font-family:'DM Sans', sans-serif;
-          line-height:1.6;
-          -webkit-font-smoothing:antialiased;
-          color:${C.ink};
-          margin: 0; padding: 0;
-          overflow-x:hidden;
+        html, body {
+          font-family: 'DM Sans', sans-serif;
+          line-height: 1.6;
+          -webkit-font-smoothing: antialiased;
+          background: ${C.bg};
+          color: ${C.ink};
+          width: 100%;
+          min-height: 100vh;
         }
 
         /* ── Scrollbar ── */
@@ -431,50 +431,49 @@ export default function GaloisExplorer() {
         }
         button { cursor:pointer; border:none; background:none; transition: all 0.2s; }
 
-        /* ── Layout ── */
-        .app-wrapper {
-          width: 100%;
-          min-height: 100dvh;
-          background:${C.bg};
-          display: flex;
-          justify-content: center;
-        }
+        /* ── Layout (Flexbox) ── */
         .app-shell {
-          width: 100%;
-          max-width: 90rem; /* Modern containment for ultrawide */
-          background:${C.bg};
-          display:grid;
-          grid-template-rows:3.5rem 1fr;
-          grid-template-columns:1fr;
-          box-shadow: 0 0 40px rgba(0,0,0,0.02);
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
         }
+
         .topbar {
-          grid-row:1;
-          background:${C.surface};
-          border-bottom:1px solid ${C.border};
-          display:flex; align-items:center;
-          padding:0 1.5rem; gap:1rem;
-          position:sticky; top:0; z-index:100;
+          flex-shrink: 0;
+          height: 3.5rem;
+          background: ${C.surface};
+          border-bottom: 1px solid ${C.border};
+          display: flex;
+          align-items: center;
+          padding: 0 1.5rem;
+          gap: 1rem;
+          position: sticky;
+          top: 0;
+          z-index: 100;
         }
         
-        .body-grid {
-          grid-row:2;
-          display:grid;
-          grid-template-columns: 14.5rem 1fr; 
-          align-items:start;
+        .layout-body {
+          display: flex;
+          flex: 1;
+          align-items: flex-start;
+          width: 100%;
+          max-width: 90rem; /* Keeps content constrained on ultrawide monitors */
+          margin: 0 auto;
         }
 
         /* ── Sidebar ── */
         .sidebar {
-          grid-column:1;
-          background:${C.surface};
-          border-right:1px solid ${C.border};
-          padding:1.5rem 1rem;
-          position:sticky; top:3.5rem;
-          height:calc(100dvh - 3.5rem);
-          overflow-y:auto;
-          display:flex; flex-direction:column; gap:0.5rem;
+          width: 16rem;
+          flex-shrink: 0;
+          position: sticky;
+          top: 3.5rem;
+          height: calc(100vh - 3.5rem);
+          overflow-y: auto;
+          background: ${C.surface};
+          border-right: 1px solid ${C.border};
+          padding: 1.5rem 1rem;
         }
+        
         .nav-group { margin-bottom:0.5rem; }
         .nav-section {
           width:100%; text-align:left;
@@ -518,23 +517,21 @@ export default function GaloisExplorer() {
         }
 
         /* ── Main content ── */
-        .main {
-          grid-column:2;
-          padding:2.5rem 3rem 4rem;
-          min-width:0;
+        .main-content {
+          flex: 1;
+          min-width: 0; /* CRITICAL: prevents flex child from expanding beyond parent */
+          padding: 2.5rem 3rem 4rem;
         }
 
         /* ── Mobile Ops Menu (Hidden on Desktop) ── */
         .mobile-ops-menu { display: none; }
 
         /* ── Op header ── */
-        .op-header {
-          margin-bottom:2rem;
-        }
+        .op-header { margin-bottom: 2rem; }
         .op-tag-row {
           display:flex; align-items:center; gap:0.75rem;
           margin-bottom:1rem;
-          min-width:0;
+          flex-wrap: wrap; /* Allows safe wrapping on small screens */
         }
         .op-path {
           font-family:'Fragment Mono', monospace;
@@ -542,7 +539,7 @@ export default function GaloisExplorer() {
           background:${C.surfaceAlt};
           border:1px solid ${C.border};
           padding:0.25rem 0.75rem; border-radius:0.3rem;
-          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
+          word-break: break-all;
         }
         .op-title {
           font-family:'Fraunces', serif;
@@ -578,11 +575,11 @@ export default function GaloisExplorer() {
         }
         .form-grid {
           display:grid;
-          grid-template-columns:repeat(auto-fill, minmax(15rem, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
           gap:1.25rem;
           margin-bottom:1.5rem;
         }
-        .run-row { display:flex; align-items:center; gap:1rem; }
+        .run-row { display:flex; align-items:center; gap:1rem; flex-wrap: wrap; }
         .run-btn {
           height:2.5rem; padding:0 1.5rem;
           background:${C.green}; color:#fff;
@@ -744,19 +741,13 @@ export default function GaloisExplorer() {
         .fade-up { animation:fadeUp 0.3s ease-out both; }
 
         /* ── Responsive breakpoints ── */
-        @media (max-width:64rem) {
-          .body-grid { grid-template-columns:5rem 1fr; }
-          .sidebar   { padding:1.5rem 0.5rem; }
-          .nav-icon  { width:100%; font-size:1.25rem; }
-          .nav-text, .nav-ops { display:none; }
-          .nav-section { justify-content:center; padding:0.75rem 0; }
-          .main      { padding:2rem 2rem 4rem; }
-        }
-        
-        @media (max-width:40rem) {
-          .body-grid { grid-template-columns:1fr; }
-          .sidebar   { display:none; }
+        @media (max-width: 900px) {
+          .sidebar { display: none; } /* Hide sidebar completely on smaller screens */
           
+          .main-content {
+            padding: 1.5rem 1.5rem 6rem 1.5rem; /* Extra bottom padding for mobile tabs */
+          }
+
           /* Show mobile pills for operations */
           .mobile-ops-menu {
             display: flex;
@@ -764,8 +755,8 @@ export default function GaloisExplorer() {
             gap: 0.5rem;
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
             scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
           }
           .mobile-ops-menu::-webkit-scrollbar { display: none; }
           .mobile-op-pill {
@@ -785,161 +776,168 @@ export default function GaloisExplorer() {
             box-shadow: 0 2px 6px ${C.green}40;
           }
 
+          /* Show Bottom Navigation */
           .mobile-tabs {
-            display:flex; position:fixed;
-            bottom:0; left:0; right:0;
-            background:${C.surface}; border-top:1px solid ${C.border};
-            z-index:200; height:4rem;
-            padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+            display: flex;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: ${C.surface};
+            border-top: 1px solid ${C.border};
+            z-index: 200;
+            height: 4.5rem;
+            padding-bottom: env(safe-area-inset-bottom); /* iOS safe area */
           }
           .mobile-tab {
-            flex:1; display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:0.2rem;
-            font-family:'DM Sans', sans-serif;
-            font-size:0.6rem; font-weight:600;
-            letter-spacing:0.04em; text-transform:uppercase;
-            color:${C.inkDim}; cursor:pointer;
-            border-top:2px solid transparent;
-            transition:all 0.2s;
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 0.2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.6rem; font-weight: 600;
+            letter-spacing: 0.04em; text-transform: uppercase;
+            color: ${C.inkDim}; cursor: pointer;
+            border-top: 2px solid transparent;
+            transition: all 0.2s;
           }
-          .mobile-tab.active { color:${C.green}; border-top-color:${C.green}; background:${C.greenLight}30; }
-          .mobile-tab-icon   { font-size:1.25rem; }
-          .main  { padding:1.5rem 1.25rem 6rem; }
-          .docs-link { display:none; }
-          .form-grid { grid-template-columns:1fr; }
-          .output-card { height:26rem; }
-          .op-title  { font-size:1.75rem; }
+          .mobile-tab.active { color: ${C.green}; border-top-color: ${C.green}; background: ${C.greenLight}30; }
+          .mobile-tab-icon { font-size: 1.25rem; }
+
+          .docs-link { display: none; }
+          .op-title { font-size: 1.75rem; }
+        }
+        
+        @media (max-width: 480px) {
+          .topbar { padding: 0 1rem; }
+          .main-content { padding: 1rem 1rem 6rem 1rem; }
+          .form-card { padding: 1.25rem; }
+          .output-card { height: 26rem; }
         }
       `}</style>
 
-      <div className="app-wrapper">
-        <div className="app-shell">
-          {/* ── Topbar ── */}
-          <header className="topbar">
-            <div className="wordmark">
-              𝔾 explorer
-              <span className="wordmark-sub">API</span>
-            </div>
-
-            {editingUrl
-              ? <input autoFocus defaultValue={baseUrl}
-                  style={{flex:1,maxWidth:"24rem",height:"2.25rem",fontSize:"0.8rem",padding:"0 0.85rem"}}
-                  onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
-                  onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
-                />
-              : <div className="url-pill" onClick={() => setEditingUrl(true)} title="Click to edit">
-                  <span className="url-dot"/>
-                  <span className="url-text">{baseUrl}</span>
-                </div>
-            }
-
-            <a className="docs-link" href={`${baseUrl}/docs`} target="_blank" rel="noreferrer">
-              /docs ↗
-            </a>
-          </header>
-
-          {/* ── Body ── */}
-          <div className="body-grid">
-            <div className="sidebar">
-              <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
-            </div>
-
-            <main className="main">
-              {/* Mobile Operations Nav */}
-              <div className="mobile-ops-menu">
-                {ops.map(o => (
-                  <button 
-                    key={o.id} 
-                    className={`mobile-op-pill ${opId === o.id ? "active" : ""}`} 
-                    onClick={() => setOpId(o.id)}>
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Op header */}
-              <div className="op-header">
-                <div className="op-tag-row">
-                  <MethodPill method={op.method}/>
-                  <code className="op-path">{op.path}</code>
-                </div>
-                <h1 className="op-title">{op.label}</h1>
-                <p className="op-desc">{op.desc}</p>
-              </div>
-
-              {op.note && <div className="note-banner">{op.note}</div>}
-
-              {/* Form */}
-              <div className="form-card">
-                {op.fields.length > 0
-                  ? <div className="form-grid">
-                      {op.fields.map(f => (
-                        <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={handleChange}/>
-                      ))}
-                    </div>
-                  : <p className="hint" style={{marginBottom:"1.25rem"}}>No parameters — just send the request.</p>
-                }
-                <div className="run-row">
-                  <button className="run-btn" onClick={call} disabled={loading}>
-                    {loading ? <><Spinner/> Running…</> : "Run Request"}
-                  </button>
-                  <span className="shortcut">⌃ Enter</span>
-                </div>
-              </div>
-
-              {/* Output */}
-              <div className={`output-card ${result || error ? "fade-up" : ""}`}>
-                <div className="output-header">
-                  <span className={`output-dot ${error?"error":result?"ok":""}`}/>
-                  <span className="output-label">
-                    {loading?"Computing…":error?"Error":result?"Result":"Output"}
-                  </span>
-                  {result && !error && <span className="output-meta">{op.method} {op.path}</span>}
-                </div>
-                <div className="output-body" ref={resultRef}>
-                  {loading && (
-                    <div className="output-empty">
-                      <Spinner/><span style={{marginLeft:"0.5rem"}}>Running…</span>
-                    </div>
-                  )}
-                  {!loading && error && <pre className="error-text">{error}</pre>}
-                  {!loading && !error && result !== null && <JsonTree data={result}/>}
-                  {!loading && !error && result === null && (
-                    <div className="output-empty">
-                      <div className="output-glyph">∅</div>
-                      <p>Run a request to see the result</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* History */}
-              {history.length > 0 && (
-                <div className="history-card">
-                  <div className="history-head">History</div>
-                  {history.map((h,i) => (
-                    <div key={i} className="history-row" onClick={() => setResult(h.result)}>
-                      <MethodPill method={h.method}/>
-                      <span className="history-name">{h.label}</span>
-                      <span className="history-time">{h.ts}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </main>
+      <div className="app-shell">
+        {/* ── Topbar ── */}
+        <header className="topbar">
+          <div className="wordmark">
+            𝔾 explorer
+            <span className="wordmark-sub">API</span>
           </div>
 
-          {/* ── Mobile bottom tabs ── */}
-          <nav className="mobile-tabs">
-            {Object.entries(SECTIONS).map(([id,meta]) => (
-              <button key={id} className={`mobile-tab ${section===id?"active":""}`}
-                onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}>
-                <span className="mobile-tab-icon">{meta.icon}</span>
-                {meta.label}
-              </button>
-            ))}
-          </nav>
+          {editingUrl
+            ? <input autoFocus defaultValue={baseUrl}
+                style={{flex:1,maxWidth:"24rem",height:"2.25rem",fontSize:"0.8rem",padding:"0 0.85rem"}}
+                onBlur={e  => {setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}
+                onKeyDown={e => {if(e.key==="Enter"){setBaseUrl(e.target.value.replace(/\/$/,"")); setEditingUrl(false);}}}
+              />
+            : <div className="url-pill" onClick={() => setEditingUrl(true)} title="Click to edit">
+                <span className="url-dot"/>
+                <span className="url-text">{baseUrl}</span>
+              </div>
+          }
+
+          <a className="docs-link" href={`${baseUrl}/docs`} target="_blank" rel="noreferrer">
+            /docs ↗
+          </a>
+        </header>
+
+        {/* ── Body ── */}
+        <div className="layout-body">
+          <aside className="sidebar">
+            <Sidebar section={section} opId={opId} onSection={setSection} onOp={setOpId}/>
+          </aside>
+
+          <main className="main-content">
+            {/* Mobile Operations Nav */}
+            <div className="mobile-ops-menu">
+              {ops.map(o => (
+                <button 
+                  key={o.id} 
+                  className={`mobile-op-pill ${opId === o.id ? "active" : ""}`} 
+                  onClick={() => setOpId(o.id)}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Op header */}
+            <div className="op-header">
+              <div className="op-tag-row">
+                <MethodPill method={op.method}/>
+                <code className="op-path">{op.path}</code>
+              </div>
+              <h1 className="op-title">{op.label}</h1>
+              <p className="op-desc">{op.desc}</p>
+            </div>
+
+            {op.note && <div className="note-banner">{op.note}</div>}
+
+            {/* Form */}
+            <div className="form-card">
+              {op.fields.length > 0
+                ? <div className="form-grid">
+                    {op.fields.map(f => (
+                      <FieldInput key={f.key} field={f} value={inputs[f.key]??""} onChange={handleChange}/>
+                    ))}
+                  </div>
+                : <p className="hint" style={{marginBottom:"1.25rem"}}>No parameters — just send the request.</p>
+              }
+              <div className="run-row">
+                <button className="run-btn" onClick={call} disabled={loading}>
+                  {loading ? <><Spinner/> Running…</> : "Run Request"}
+                </button>
+                <span className="shortcut">⌃ Enter</span>
+              </div>
+            </div>
+
+            {/* Output */}
+            <div className={`output-card ${result || error ? "fade-up" : ""}`}>
+              <div className="output-header">
+                <span className={`output-dot ${error?"error":result?"ok":""}`}/>
+                <span className="output-label">
+                  {loading?"Computing…":error?"Error":result?"Result":"Output"}
+                </span>
+                {result && !error && <span className="output-meta">{op.method} {op.path}</span>}
+              </div>
+              <div className="output-body" ref={resultRef}>
+                {loading && (
+                  <div className="output-empty">
+                    <Spinner/><span style={{marginLeft:"0.5rem"}}>Running…</span>
+                  </div>
+                )}
+                {!loading && error && <pre className="error-text">{error}</pre>}
+                {!loading && !error && result !== null && <JsonTree data={result}/>}
+                {!loading && !error && result === null && (
+                  <div className="output-empty">
+                    <div className="output-glyph">∅</div>
+                    <p>Run a request to see the result</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* History */}
+            {history.length > 0 && (
+              <div className="history-card">
+                <div className="history-head">History</div>
+                {history.map((h,i) => (
+                  <div key={i} className="history-row" onClick={() => setResult(h.result)}>
+                    <MethodPill method={h.method}/>
+                    <span className="history-name">{h.label}</span>
+                    <span className="history-time">{h.ts}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
         </div>
+
+        {/* ── Mobile bottom tabs ── */}
+        <nav className="mobile-tabs">
+          {Object.entries(SECTIONS).map(([id,meta]) => (
+            <button key={id} className={`mobile-tab ${section===id?"active":""}`}
+              onClick={() => {setSection(id); setOpId(OPS[id][0].id);}}>
+              <span className="mobile-tab-icon">{meta.icon}</span>
+              {meta.label}
+            </button>
+          ))}
+        </nav>
       </div>
     </>
   );
