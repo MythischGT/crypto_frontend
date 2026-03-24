@@ -357,7 +357,7 @@ function OutputPanel({ result, error, loading, op, ref: resultRef }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function GaloisExplorer() {
-  const [baseUrl,    setBaseUrl]    = useState(import.meta?.env?.VITE_API_URL ?? "http://localhost:8000");
+  const [baseUrl,    setBaseUrl]    = useState("http://localhost:8000");
   const [editingUrl, setEditingUrl] = useState(false);
   const [section,    setSection]    = useState("field");
   const [opId,       setOpId]       = useState("element");
@@ -484,16 +484,18 @@ export default function GaloisExplorer() {
           padding:0 1.5rem; gap:1rem;
           position:sticky; top:0; z-index:100;
         }
+        
         .body-grid {
           grid-row:2;
           display:grid;
-          grid-template-columns:13.5rem 1fr;
+          grid-template-columns: auto 1fr; /* Let the sidebar dictate the width */
           align-items:start;
         }
 
         /* ── Sidebar ── */
         .sidebar {
           grid-column:1;
+          width: 13.5rem; /* Add this explicit width */
           background:${C.surface};
           border-right:1px solid ${C.border};
           padding:1.25rem 0.875rem;
@@ -771,14 +773,11 @@ export default function GaloisExplorer() {
 
         /* ── Responsive ── */
         @media (max-width:56rem) {
-          /* FIX: Tell the grid to shrink the first column */
-          .body-grid { grid-template-columns: 4rem 1fr; } 
-          .sidebar   { width: 100%; padding:1rem 0.5rem; } 
+          .sidebar   { width: 4.5rem; padding:1rem 0.5rem; } /* Update width here */
           .nav-icon  { width:100%; font-size:1.125rem; }
           .nav-text, .nav-ops { display:none; }
           .nav-section { justify-content:center; }
           .main      { padding:1.5rem 1.75rem 3rem; }
-          .topbar    { gap:0.5rem; padding:0 1rem; }
         }
         @media (max-width:37.5rem) {
           .body-grid { grid-template-columns:1fr; }
